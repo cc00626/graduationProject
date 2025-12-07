@@ -1,0 +1,31 @@
+.registerContainer {
+  --primary-color: #40a9ff; /* 更亮的科技蓝 */
+  --warning-color: #fa8c16;
+  --glass-bg: rgba(0, 0, 0, 0.7); /* 更深的玻璃背景，确保文字清晰 */
+  --text-white: #ffffff;
+  --text-gray: #b0c4de; /* 稍亮的灰色 */
+
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  background: radial-gradient(circle at center, #1b2838 0%, #000c17 100%);
+  /* 确保这里有背景图资源，或者只用渐变 */
+  background-image: url('https://images.unsplash.com/photo-1454789476662-53eb23ba5907?q=80&w=2552&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  .registerBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    .registerBtn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}

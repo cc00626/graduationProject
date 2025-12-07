@@ -46,7 +46,7 @@ const Login = () => {
                 登录
               </Button>
               <Button type="primary" size="middle" onClick={onRegister}>
-                注册
+                没有账号，去注册
               </Button>
             </Space>
           </Form.Item>
