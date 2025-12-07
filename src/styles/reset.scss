@@ -1,0 +1,97 @@
+/* ==========================================================================
+   #Reset & Base Styles - Meteorological Dark Theme
+   ========================================================================== */
+
+/* 1. 盒模型重置：所有元素使用 border-box，便于布局计算 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 2. 根元素与页面主体：适应全屏应用 */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden; /* 防止意外的横向滚动 */
+
+  /* 字体设置：优先使用系统字体，保障加载速度 */
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  /* 字体渲染优化：让深色背景下的细文字更清晰 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* 默认深色背景，防止加载瞬间出现白屏闪烁 */
+  background-color: #000c17;
+  color: #ffffff;
+
+  line-height: 1.5;
+}
+
+/* 3. 媒体元素：自适应宽度 */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* 4. 表单元素：继承字体，去除默认风格 */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  outline: none;
+  border: none; /* Antd 会自己处理边框，这里先去默认 */
+}
+
+button {
+  cursor: pointer;
+  background: none;
+}
+
+/* 5. 列表与链接：去除默认装饰 */
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit; /* 链接颜色继承父元素，避免默认的蓝色 */
+}
+
+/* 6. 针对深色模式的滚动条美化 (Chrome/Safari/Edge) 
+   这对大屏展示项目非常重要，避免白色滚动条破坏氛围 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #001529; /* 轨道颜色：深蓝 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #304050; /* 滑块颜色：稍亮的灰蓝 */
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #fa8c16; /* 悬停高亮：使用你的预警橙色 */
+}
+
+/* 7. 选中文本的颜色：高亮色呼应气象预警主题 */
+::selection {
+  background-color: rgba(250, 140, 22, 0.3); /* 橙色半透明 */
+  color: #fff;
+}
