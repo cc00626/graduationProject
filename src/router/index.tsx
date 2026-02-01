@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register/index'
 import DashBoard from '@/pages/DashBoard'
-import Map from '@/pages/Map'
+import MapComponent from '@/pages/MapPage'
 // import { Navigate } from 'react-router-dom'
 import Layout from '@/layout'
 const router = createBrowserRouter([
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/map',
-        element: <Map />,
+        element: <MapComponent />,
       },
     ],
   },

@@ -6,7 +6,6 @@ import style from './index.module.scss'
 const { Title } = Typography
 
 const Register = () => {
-  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   // 表单检验规则
