@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import 'ol/ol.css'
 import Map from 'ol/Map'
 import View from 'ol/View'
@@ -26,21 +26,176 @@ const DISTRICT_COORDS = {
   增城区: [113.829579, 23.290497],
   番禺区: [113.364619, 22.938582],
   南沙区: [113.53738, 22.794531],
+} as const
+type DistrictName = keyof typeof DISTRICT_COORDS
+type WindDistrict = {
+  district: string
+  levelCounts?: number[]
+}
+type WindPollResponse = {
+  code: number
+  data?: {
+    districts: WindDistrict[]
+    time: string
+  }
 }
 
-const DISTRICT_OFFSETS = {
-  越秀区: [0, -40], // 向上飘一点
-  海珠区: [0, 40], // 向下飘一点
-  荔湾区: [-60, 0], // 向左偏
-  天河区: [60, 0], // 向右偏
+const CARD_SIZE = {
+  width: 150,
+  height: 84,
 }
+
+const DISTRICT_CARD_OFFSETS: Partial<Record<DistrictName, [number, number]>> = {
+  越秀区: [-175, -120],
+  海珠区: [-130, 88],
+  荔湾区: [-235, -18],
+  天河区: [130, -64],
+  白云区: [-85, -190],
+  黄埔区: [205, 18],
+  花都区: [-95, -86],
+  番禺区: [95, 44],
+}
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+
+const getConnectorStyle = (offsetX: number, offsetY: number) => {
+  const targetX = clamp(0, offsetX, offsetX + CARD_SIZE.width)
+  const targetY = clamp(0, offsetY, offsetY + CARD_SIZE.height)
+  const distance = Math.hypot(targetX, targetY)
+  const angle = (Math.atan2(targetY, targetX) * 180) / Math.PI
+
+  return {
+    width: `${distance}px`,
+    transform: `rotate(${angle}deg)`,
+  }
+}
+
+const resolveDistrictName = (rawName: string): DistrictName | null => {
+  const name = rawName.replace(/\s/g, '')
+  return name in DISTRICT_COORDS ? (name as DistrictName) : null
+}
+
+const defaultDistrictStyle = new Style({
+  stroke: new Stroke({
+    color: '#3388ff',
+    width: 2,
+  }),
+  fill: new Fill({
+    color: 'rgba(51, 136, 255, 0.1)',
+  }),
+})
+
+const activeDistrictStyle = new Style({
+  stroke: new Stroke({
+    color: '#ff5a36',
+    width: 3,
+  }),
+  fill: new Fill({
+    color: 'rgba(255, 90, 54, 0.22)',
+  }),
+})
+
 const MapComponent = () => {
-  const mapElement = useRef()
-  const mapRef = useRef()
+  const mapElement = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<Map | null>(null)
+  const districtCentersRef = useRef<Partial<Record<DistrictName, [number, number]>>>({})
+  const windDataRef = useRef<Partial<Record<DistrictName, number[]>>>({})
+  const selectedDistrictRef = useRef<DistrictName | null>(null)
+  const selectedOverlayRef = useRef<Overlay | null>(null)
+
+  const renderDistrictOverlay = (name: DistrictName) => {
+    const map = mapRef.current
+    if (!map) return
+
+    const coords = districtCentersRef.current[name] || DISTRICT_COORDS[name]
+    const [offsetX, offsetY] = DISTRICT_CARD_OFFSETS[name] || [140, -70]
+    const connectorStyle = getConnectorStyle(offsetX, offsetY)
+    const counts = windDataRef.current[name] || [0, 0, 0, 0]
+    const colors = ['#2E7D32', '#FBC02D', '#EF6C00', '#C62828']
+    const content = `
+      <div style="font-size: 12px; line-height: 1.4;">
+        <div style="font-weight: bold; color: #333; border-bottom: 1px solid #eee;">${name}</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; margin-top: 2px;">
+          <span style="color: ${colors[0]}">1级: ${counts[0] || 0}</span>
+          <span style="color: ${colors[1]}">2级: ${counts[1] || 0}</span>
+          <span style="color: ${colors[2]}">3级: ${counts[2] || 0}</span>
+          <span style="color: ${colors[3]}">4级: ${counts[3] || 0}</span>
+        </div>
+      </div>
+    `
+
+    let overlay = selectedOverlayRef.current
+    if (!overlay) {
+      const wrapper = document.createElement('div')
+      wrapper.style.cssText = 'position: relative; width: 0; height: 0; pointer-events: none;'
+
+      const anchor = document.createElement('div')
+      anchor.style.cssText = `
+        position: absolute;
+        left: -3px;
+        top: -3px;
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: #243553;
+      `
+
+      const connector = document.createElement('div')
+      connector.className = 'wind-connector'
+      connector.style.cssText = `
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 1.5px;
+        transform-origin: 0 0;
+        background: rgba(36, 53, 83, 0.55);
+      `
+
+      const card = document.createElement('div')
+      card.className = 'wind-card'
+      card.style.cssText = `
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: ${CARD_SIZE.width}px;
+        min-height: ${CARD_SIZE.height}px;
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid #4f6b99;
+        padding: 6px 8px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      `
+
+      wrapper.appendChild(anchor)
+      wrapper.appendChild(connector)
+      wrapper.appendChild(card)
+
+      overlay = new Overlay({
+        element: wrapper,
+        positioning: 'top-left',
+      })
+      map.addOverlay(overlay)
+      selectedOverlayRef.current = overlay
+    }
+
+    overlay.setPosition(fromLonLat([...coords]))
+    const wrapper = overlay.getElement()
+    if (!wrapper) return
+    const connectorEl = wrapper.querySelector<HTMLDivElement>('.wind-connector')
+    const cardEl = wrapper.querySelector<HTMLDivElement>('.wind-card')
+    if (connectorEl) {
+      connectorEl.style.width = connectorStyle.width
+      connectorEl.style.transform = connectorStyle.transform
+    }
+    if (cardEl) {
+      cardEl.style.transform = `translate(${offsetX}px, ${offsetY}px)`
+      cardEl.innerHTML = content
+    }
+  }
 
   useEffect(() => {
     class TitleControl extends Control {
-      constructor(title) {
+      constructor(title: string) {
         const element = document.createElement('div')
         element.className = 'map-title'
         element.innerHTML = title
@@ -63,20 +218,19 @@ const MapComponent = () => {
     // --- 3. 创建矢量图层并设置样式 ---
     const guangzhouLayer = new VectorLayer({
       source: vectorSource,
-      style: new Style({
-        stroke: new Stroke({
-          color: '#3388ff', // 边界线颜色
-          width: 2,
-        }),
-        fill: new Fill({
-          color: 'rgba(51, 136, 255, 0.1)', // 填充颜色（透明蓝色）
-        }),
-      }),
+      style: feature => {
+        const rawName = feature.get('name')
+        const featureName = typeof rawName === 'string' ? resolveDistrictName(rawName) : null
+        if (featureName && selectedDistrictRef.current === featureName) {
+          return activeDistrictStyle
+        }
+        return defaultDistrictStyle
+      },
     })
 
     // 4. 初始化地图实例
     const initialMap = new Map({
-      target: mapElement.current,
+      target: mapElement.current ?? undefined,
       layers: [
         new TileLayer({
           source: new OSM(),
@@ -91,7 +245,58 @@ const MapComponent = () => {
     initialMap.addControl(new TitleControl('广州市地图'))
     mapRef.current = initialMap
 
-    return () => initialMap.setTarget(null)
+    initialMap.on('click', event => {
+      const feature = initialMap.forEachFeatureAtPixel(event.pixel, currentFeature => currentFeature)
+      if (!feature) {
+        selectedDistrictRef.current = null
+        guangzhouLayer.changed()
+        return
+      }
+      const rawName = feature.get('name')
+      if (typeof rawName !== 'string') {
+        selectedDistrictRef.current = null
+        guangzhouLayer.changed()
+        return
+      }
+      const name = resolveDistrictName(rawName)
+      if (!name) {
+        selectedDistrictRef.current = null
+        guangzhouLayer.changed()
+        return
+      }
+      selectedDistrictRef.current = name
+      guangzhouLayer.changed()
+      renderDistrictOverlay(name)
+    })
+
+    // 优先使用 geojson 中每个区的 center 作为连线锚点
+    fetch('/广州市.geojson')
+      .then(response => response.json())
+      .then((json: unknown) => {
+        if (!json || typeof json !== 'object' || !('features' in json)) return
+        const features = (json as { features?: unknown[] }).features
+        if (!Array.isArray(features)) return
+
+        const nextCenters: Partial<Record<DistrictName, [number, number]>> = {}
+        features.forEach(feature => {
+          const properties = (feature as { properties?: Record<string, unknown> }).properties
+          if (!properties) return
+          const rawName = properties.name
+          const center = properties.center
+          if (typeof rawName !== 'string' || !Array.isArray(center) || center.length < 2) return
+
+          const name = resolveDistrictName(rawName)
+          if (!name) return
+          if (typeof center[0] !== 'number' || typeof center[1] !== 'number') return
+          nextCenters[name] = [center[0], center[1]]
+        })
+        districtCentersRef.current = nextCenters
+      })
+      .catch(error => {
+        console.error('读取广州市.geojson失败，回退到默认坐标:', error)
+      })
+
+    return () => initialMap.setTarget(undefined)
   }, [])
 
   // 在这里添加轮询逻辑
@@ -138,64 +343,25 @@ const MapComponent = () => {
 
   useEffect(() => {
     let isRunning = true
-    let lastTime = undefined
-    const overlayMap = new Map() // 用于缓存各个区的 Overlay 实例
+    let lastTime: string | undefined = undefined
 
     const startPolling = async () => {
       while (isRunning && mapRef.current) {
         try {
-          const res = await getWindPoll(lastTime)
+          const res = (await getWindPoll(lastTime)) as unknown as WindPollResponse
           if (!isRunning) break
 
           if (res.code === 0 && res.data) {
             const { districts, time } = res.data
-
             districts.forEach(item => {
-              const name = item.district
-              const coords = DISTRICT_COORDS[name]
-              const offset = DISTRICT_OFFSETS[name] || [0, 0] // 默认不偏移
-              if (!coords) return
-
-              let overlay = overlayMap.get(name)
-              if (!overlay) {
-                const el = document.createElement('div')
-                el.style.cssText = `
-                  background: rgba(255, 255, 255, 0.95);
-                  border: 1px solid #666;
-                  padding: 4px 8px;
-                  border-radius: 4px;
-                  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
-                  pointer-events: none;
-                `
-                overlay = new Overlay({
-                  element: el,
-                  position: fromLonLat(coords),
-                  positioning: 'bottom-center',
-                  offset: offset, // 向上偏移一点，避免遮挡中心点
-                })
-                mapRef.current.addOverlay(overlay)
-                overlayMap.set(name, overlay)
-              }
-
-              // 设置四个等级的数据显示
-              const counts = item.levelCounts || []
-              const colors = ['#2E7D32', '#FBC02D', '#EF6C00', '#C62828']
-
-              const content = `
-                <div style="font-size: 12px; line-height: 1.4;">
-                  <div style="font-weight: bold; color: #333; border-bottom: 1px solid #eee;">${name}</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; margin-top: 2px;">
-                    <span style="color: ${colors[0]}">1级: ${counts[0] || 0}</span>
-                    <span style="color: ${colors[1]}">2级: ${counts[1] || 0}</span>
-                    <span style="color: ${colors[2]}">3级: ${counts[2] || 0}</span>
-                    <span style="color: ${colors[3]}">4级: ${counts[3] || 0}</span>
-                  </div>
-                </div>
-              `
-
-              overlay.getElement().innerHTML = content
+              const name = resolveDistrictName(item.district)
+              if (!name) return
+              windDataRef.current[name] = item.levelCounts || [0, 0, 0, 0]
             })
 
+            if (selectedDistrictRef.current) {
+              renderDistrictOverlay(selectedDistrictRef.current)
+            }
             lastTime = time
           }
         } catch (error) {
@@ -209,11 +375,10 @@ const MapComponent = () => {
 
     return () => {
       isRunning = false
-      // 清理所有已添加的 Overlay
-      // overlayMap.forEach(overlay => {
-      //   mapRef.current?.removeOverlay(overlay)
-      // })
-      // overlayMap.clear()
+      if (mapRef.current && selectedOverlayRef.current) {
+        mapRef.current.removeOverlay(selectedOverlayRef.current)
+      }
+      selectedOverlayRef.current = null
     }
   }, [])
   return (

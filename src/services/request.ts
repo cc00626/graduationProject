@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance, type AxiosResponse } from 'axios'
+import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios'
 
 // 创建 axios 实例
 const instance: AxiosInstance = axios.create({
@@ -23,7 +23,7 @@ instance.interceptors.request.use(
 
 // 响应拦截器
 instance.interceptors.response.use(
-  (response: AxiosResponse) => {
+  response => {
     // 直接返回响应数据
     return response.data
   },
@@ -48,6 +48,26 @@ instance.interceptors.response.use(
   },
 )
 
-const request = instance
+interface RequestClient {
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
+  post<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
+  put<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
+}
+
+const request: RequestClient = {
+  get<T = unknown>(url: string, config?: AxiosRequestConfig) {
+    return instance.get(url, config) as Promise<T>
+  },
+  post<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>) {
+    return instance.post(url, data, config) as Promise<T>
+  },
+  put<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>) {
+    return instance.put(url, data, config) as Promise<T>
+  },
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig) {
+    return instance.delete(url, config) as Promise<T>
+  },
+}
 
 export default request
