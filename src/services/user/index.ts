@@ -27,5 +27,5 @@ export const UserRegister = (data: UserData) => {
 
 //用户登录接口
 export const UserRLogin = (data: UserData) => {
-  return request.post('/auth/login', data)
+  return request.post<ApiResponse<RegisterData>>('/auth/login', data)
 }

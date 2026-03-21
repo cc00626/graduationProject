@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register/index'
 import DashBoard from '@/pages/DashBoard'
-import MapComponent from '@/pages/MapPage'
+import MapComponent from '@/pages/MapPage/index.tsx'
 // import { Navigate } from 'react-router-dom'
 import Layout from '@/layout'
 const router = createBrowserRouter([

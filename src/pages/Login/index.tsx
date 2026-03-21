@@ -1,10 +1,13 @@
-import { Form, Input, Button, Typography, Space } from 'antd'
+import { Form, Input, Button, Typography, Space, message } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import style from './index.module.scss'
-
+import { UserRLogin } from '@/services/user'
 const { Title, Text } = Typography
-
+interface LoginData {
+  username: string
+  password: string
+}
 const Login = () => {
   const navigate = useNavigate()
 
@@ -13,7 +16,17 @@ const Login = () => {
     password: [{ required: true, message: '请输入密码' }],
   }
 
-  const onFinish = () => {
+  const onFinish = async (data: LoginData) => {
+    const { username: account, password } = data
+    const res = await UserRLogin({ account, password })
+    if (res.code !== 0) {
+      message.error(res.message)
+      return
+    }
+    //提示消息
+    message.success(res.message)
+    localStorage.setItem('token', res.data.token)
+    localStorage.setItem('user', JSON.stringify(res.data.user))
     navigate('/')
   }
 
@@ -43,7 +56,12 @@ const Login = () => {
           </div>
 
           <Form className={style.form} layout="vertical" onFinish={onFinish}>
-            <Form.Item className={style.formItem} label="用户名" name="username" rules={rules.username}>
+            <Form.Item
+              className={style.formItem}
+              label="用户名"
+              name="username"
+              rules={rules.username}
+            >
               <Input
                 prefix={<UserOutlined />}
                 placeholder="请输入用户名"
@@ -52,7 +70,12 @@ const Login = () => {
               />
             </Form.Item>
 
-            <Form.Item className={style.formItem} label="密码" name="password" rules={rules.password}>
+            <Form.Item
+              className={style.formItem}
+              label="密码"
+              name="password"
+              rules={rules.password}
+            >
               <Input
                 prefix={<LockOutlined />}
                 placeholder="请输入密码"
@@ -63,7 +86,12 @@ const Login = () => {
 
             <Form.Item className={style.actionRow}>
               <Space direction="vertical" size="middle" className={style.actionGroup}>
-                <Button type="primary" htmlType="submit" size="large" className={style.primaryButton}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                  className={style.primaryButton}
+                >
                   登录
                 </Button>
                 <Button size="large" className={style.secondaryButton} onClick={onRegister}>
