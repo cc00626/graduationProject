@@ -3,11 +3,15 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import style from './index.module.scss'
 import { UserRegister } from '@/services/user'
+import { saveAuth } from '@/utils/auth'
+
 const { Title, Text } = Typography
+
 interface RegisterData {
   username: string
   password: string
 }
+
 const Register = () => {
   const navigate = useNavigate()
 
@@ -24,18 +28,15 @@ const Register = () => {
       data: { token, user },
       message: msg,
     } = res
+
     if (code === 0) {
-      //提示消息
       message.success(msg)
-      //保存用户信息和token
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(user))
-      //跳转到首页
-      navigate('/')
-    } else {
-      //登录失败
-      message.error(msg)
+      saveAuth(token, user)
+      navigate('/dashboard')
+      return
     }
+
+    message.error(msg)
   }
 
   const onLogin = () => {
@@ -48,7 +49,7 @@ const Register = () => {
         <div className={style.heroPanel}>
           <Text className={style.badge}>Create Account</Text>
           <Title level={2} className={style.title}>
-            注册新账号
+            注册新账户
           </Title>
           <Text className={style.subtitle}>完成注册后即可进入系统查看气象数据和灾害信息。</Text>
         </div>
@@ -58,16 +59,11 @@ const Register = () => {
             <Title level={3} className={style.formTitle}>
               注册
             </Title>
-            <Text className={style.formHint}>请填写基础账号信息，创建一个新的系统账号。</Text>
+            <Text className={style.formHint}>请填写基础账号信息，创建一个新的系统账户。</Text>
           </div>
 
           <Form className={style.form} layout="vertical" onFinish={onFinish}>
-            <Form.Item
-              className={style.formItem}
-              label="用户名"
-              name="username"
-              rules={rules.username}
-            >
+            <Form.Item className={style.formItem} label="用户名" name="username" rules={rules.username}>
               <Input
                 prefix={<UserOutlined />}
                 placeholder="请输入用户名"
@@ -76,12 +72,7 @@ const Register = () => {
               />
             </Form.Item>
 
-            <Form.Item
-              className={style.formItem}
-              label="密码"
-              name="password"
-              rules={rules.password}
-            >
+            <Form.Item className={style.formItem} label="密码" name="password" rules={rules.password}>
               <Input
                 prefix={<LockOutlined />}
                 placeholder="请输入密码"
@@ -92,12 +83,7 @@ const Register = () => {
 
             <Form.Item className={style.actionRow}>
               <Space direction="vertical" size="middle" className={style.actionGroup}>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
-                  className={style.primaryButton}
-                >
+                <Button type="primary" htmlType="submit" size="large" className={style.primaryButton}>
                   注册
                 </Button>
                 <Button size="large" className={style.secondaryButton} onClick={onLogin}>
@@ -113,3 +99,4 @@ const Register = () => {
 }
 
 export default Register
+

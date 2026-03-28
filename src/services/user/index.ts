@@ -29,3 +29,8 @@ export const UserRegister = (data: UserData) => {
 export const UserRLogin = (data: UserData) => {
   return request.post<ApiResponse<RegisterData>>('/auth/login', data)
 }
+
+//鐢ㄦ埛閫€鍑烘帴鍙?
+export const UserLogout = () => {
+  return request.post<ApiResponse<null>>('/auth/logout')
+}

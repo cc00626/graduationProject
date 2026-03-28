@@ -1124,7 +1124,12 @@ const MapComponent = () => {
               </Title>
               <Text className={style.panelDesc}>点击区块可查看详细风力等级统计与风险说明。</Text>
             </div>
-            <Text className={style.updateTime}>最近更新：{lastUpdateTime}</Text>
+            <div className={style.headerMeta}>
+              <span className={`${style.headerStatus} ${systemStatus === 'warning' ? style.headerStatusWarning : ''}`}>
+                {systemStatus === 'warning' ? '重点监测' : '正常运行'}
+              </span>
+              <Text className={style.updateTime}>最近更新：{lastUpdateTime}</Text>
+            </div>
           </div>
 
           <div className={style.toolRow}>
@@ -1221,12 +1226,14 @@ const MapComponent = () => {
             <span className={style.measureHint}>当前结果: {measureResult}</span>
           </div>
 
-          <div ref={mapElement} className={style.mapCanvas} />
+          <div className={style.mapStage}>
+            <div ref={mapElement} className={style.mapCanvas} />
 
-          <div className={style.mapFooter}>
-            <span className={style.mapFooterItem}>中心坐标: {mapCenterText}</span>
-            <span className={style.mapFooterItem}>鼠标坐标: {cursorText}</span>
-            <span className={style.mapFooterItem}>监测站点: {MONITOR_STATIONS.length}</span>
+            <div className={style.mapFooter}>
+              <span className={style.mapFooterItem}>中心坐标: {mapCenterText}</span>
+              <span className={style.mapFooterItem}>鼠标坐标: {cursorText}</span>
+              <span className={style.mapFooterItem}>监测站点: {MONITOR_STATIONS.length}</span>
+            </div>
           </div>
         </section>
 

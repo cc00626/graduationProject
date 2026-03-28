@@ -3,6 +3,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import style from './index.module.scss'
 import { UserRLogin } from '@/services/user'
+import { saveAuth } from '@/utils/auth'
 const { Title, Text } = Typography
 interface LoginData {
   username: string
@@ -25,9 +26,8 @@ const Login = () => {
     }
     //提示消息
     message.success(res.message)
-    localStorage.setItem('token', res.data.token)
-    localStorage.setItem('user', JSON.stringify(res.data.user))
-    navigate('/')
+    saveAuth(res.data.token, res.data.user)
+    navigate('/dashboard')
   }
 
   const onRegister = () => {

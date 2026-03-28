@@ -1,11 +1,11 @@
 .page {
   height: 100vh;
   padding: 12px;
-  background: #f5f7fa;
+  background: #eef3f7;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .header {
@@ -78,10 +78,10 @@
 .metricCard,
 .mapPanel,
 .sideCard {
-  border: 1px solid #e5e9ef;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  border: 1px solid #d6e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
 }
 
 .metricCard {
@@ -108,7 +108,7 @@
 
 .mainGrid {
   display: grid;
-  grid-template-columns: minmax(0, 2.35fr) minmax(260px, 0.65fr);
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 12px;
   align-items: stretch;
   flex: 1;
@@ -116,13 +116,22 @@
 }
 
 .mapPanel {
-  padding: 12px;
+  position: relative;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.mapPanel::before {
+  display: none;
 }
 
 .panelHeader {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -130,27 +139,57 @@
   margin-bottom: 8px;
 }
 
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerStatus {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid #d7e4d7;
+  border-radius: 999px;
+  background: #f0f7f1;
+  color: #2c6b45;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.headerStatusWarning {
+  border-color: #ead8b1;
+  background: #fff7e6;
+  color: #b26a00;
+}
+
 .panelTitle {
   margin: 0 0 4px !important;
   color: #1f2d3d !important;
   font-size: 18px !important;
+  letter-spacing: 0;
 }
 
 .panelDesc {
-  color: #7b8794 !important;
+  color: #6b7785 !important;
   font-size: 12px;
 }
 
 .updateTime {
-  color: #7b8794 !important;
+  color: #6b7785 !important;
   white-space: nowrap;
+  padding: 6px 10px;
+  border: 1px solid #d6e0ea;
+  border-radius: 6px;
+  background: #fff;
 }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-bottom: 8px;
+  gap: 6px 8px;
+  margin: 0;
+  padding: 0;
 }
 
 .mapToolbar {
@@ -158,7 +197,8 @@
   justify-content: space-between;
   gap: 10px;
   align-items: center;
-  margin-bottom: 8px;
+  margin: 0;
+  padding: 0;
 }
 
 .analysisToolbar {
@@ -167,6 +207,8 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  padding: 0;
+  border-bottom: 0;
 }
 
 .mapActionGroup,
@@ -183,7 +225,9 @@
   background: #fff;
   color: #334155;
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: none;
 }
 
 .mapActionButton:hover {
@@ -197,8 +241,10 @@
   padding: 5px 10px;
   border-radius: 999px;
   background: #f4f7fb;
+  border: 1px solid #e3eaf2;
   color: #516173;
   font-size: 12px;
+  font-weight: 500;
 }
 
 .measureHint {
@@ -207,9 +253,17 @@
 }
 
 .toolRow {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-bottom: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f7fafc;
+  border: 1px solid #e6edf5;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .toolGroup {
@@ -217,6 +271,33 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+
+.toolRow + .legend,
+.legend + .mapToolbar,
+.mapToolbar + .analysisToolbar {
+  padding-left: 10px;
+  padding-right: 10px;
+  background: #f7fafc;
+  border-left: 1px solid #e6edf5;
+  border-right: 1px solid #e6edf5;
+}
+
+.toolRow + .legend {
+  padding-top: 6px;
+}
+
+.legend + .mapToolbar {
+  padding-top: 6px;
+}
+
+.mapToolbar + .analysisToolbar {
+  padding-top: 6px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e6edf5;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 
 .toolLabel {
@@ -233,6 +314,8 @@
   color: #475569;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 500;
+  box-shadow: none;
 }
 
 .toolButtonActive {
@@ -245,6 +328,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid #e5ecf3;
+  border-radius: 999px;
+  background: #fff;
   color: #4b5563;
   font-size: 12px;
 }
@@ -256,12 +343,15 @@
 }
 
 .mapCanvas {
+  position: relative;
+  z-index: 1;
   flex: 1;
-  min-height: 520px;
+  min-height: 780px;
   border-radius: 8px;
   overflow: hidden;
   background: #eef3f7;
-  border: 1px solid #dbe3ec;
+  border: 1px solid #d6e0ea;
+  box-shadow: none;
 
   :global(.ol-viewport) {
     border-radius: 8px;
@@ -272,10 +362,11 @@
     padding: 6px 12px;
     border: 1px solid #dbe3ec;
     border-radius: 6px;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.96);
     color: #334155;
     font-size: 13px;
     font-weight: 700;
+    backdrop-filter: none;
   }
 
   :global(.ol-full-screen),
@@ -289,23 +380,41 @@
     top: 12px;
   }
 
+  :global(.ol-control button) {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    border: 1px solid #cfd8e3;
+    background: rgba(255, 255, 255, 0.96);
+    color: #334155;
+  }
+
+  :global(.ol-control button:hover) {
+    background: #f5f8fb;
+  }
+
   :global(.ol-zoomslider) {
     top: 52px;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 999px;
+    padding: 4px 0;
   }
 
   :global(.ol-scale-line) {
     left: 12px;
     bottom: 12px;
-    background: rgba(21, 35, 55, 0.75);
+    background: rgba(51, 65, 85, 0.88);
+    border-radius: 999px;
+    padding: 2px 8px;
   }
 
   :global(.ol-overviewmap) {
     bottom: 12px;
     top: auto;
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.96);
     border-radius: 8px;
     border: 1px solid #dbe3ec;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
   }
 
   :global(.ol-overviewmap-map) {
@@ -313,11 +422,24 @@
   }
 }
 
+.mapStage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .mapFooter {
+  position: absolute;
+  left: 12px;
+  right: 18px;
+  bottom: 12px;
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
   gap: 8px 12px;
-  margin-top: 8px;
   color: #66758a;
   font-size: 12px;
 }
@@ -325,16 +447,27 @@
 .mapFooterItem {
   display: inline-flex;
   align-items: center;
-  padding: 4px 0;
+  padding: 4px 10px;
+  border: 1px solid #d7e0ea;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .sidebar {
+  position: relative;
+  width: 320px;
+  padding: 0;
   min-height: 0;
 }
 
 .sideCard {
-  padding: 12px;
+  padding: 10px;
+  height: 100%;
+  max-height: none;
   min-height: 0;
+  background: #ffffff;
+  border: 1px solid #d6e0ea;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
 }
 
 .sideTabsCard {
@@ -346,42 +479,79 @@
 
 .sideTabs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #dce6f0;
+  border-radius: 8px;
+  background: #f5f8fb;
 }
 
 .sideTabButton {
-  padding: 7px 8px;
-  border: 1px solid #d9e1ea;
-  border-radius: 8px;
-  background: #fff;
-  color: #475569;
+  min-height: 34px;
+  padding: 0 8px 0 12px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #5f6f82;
   font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
   cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sideTabButton:hover {
+  background: #eef4fb;
+  color: #3f5873;
 }
 
 .sideTabButtonActive {
-  border-color: #4c8bf5;
-  background: #edf4ff;
+  border-color: #c8d8ec;
+  background: #ffffff;
   color: #1d4ed8;
   font-weight: 600;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.sideTabButtonActive::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: #1d4ed8;
 }
 
 .sideContent {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding-right: 2px;
+  padding: 2px 0 0;
 }
 
 .contentSection {
   display: grid;
-  gap: 14px;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e9eff5;
+  border-radius: 8px;
+  background: #fbfdff;
 }
 
 .sideTitle {
-  margin: 0 0 14px !important;
+  margin: 0 !important;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #edf2f7;
   color: #1f2d3d !important;
+  font-size: 15px !important;
 }
 
 .rankList {
@@ -455,7 +625,7 @@
 
 .detailCard {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .detailHead {
@@ -467,13 +637,13 @@
 
 .detailName {
   color: #1f2d3d;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 .detailHint {
   color: #8a94a3 !important;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .detailMetrics {
@@ -492,21 +662,23 @@
   gap: 12px;
   color: #4b5563;
   font-size: 13px;
+  line-height: 1.4;
 }
 
 .adviceBox {
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid #e8edf3;
   border-radius: 8px;
   background: #f8fafc;
   color: #4b5563;
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 .adviceTitle {
   margin-bottom: 6px;
   color: #334155;
   font-weight: 700;
+  font-size: 13px;
 }
 
 .analysisResultText {
@@ -531,6 +703,7 @@
 .poiItem {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   padding: 10px 12px;
   border: 1px solid #eef2f6;
@@ -538,6 +711,7 @@
   background: #fafbfd;
   color: #475569;
   font-size: 13px;
+  line-height: 1.4;
 }
 
 .stationStats {
@@ -552,6 +726,7 @@
   border-radius: 8px;
   background: #fafbfd;
   color: #475569;
+  line-height: 1.4;
 }
 
 .stationStat strong {
@@ -584,22 +759,37 @@
   border: 1px dashed #d7dee7;
   border-radius: 8px;
   color: #6b7785;
-  line-height: 1.8;
+  line-height: 1.7;
   background: #fafbfd;
 }
 
 .analysisItem {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 14px;
-  padding: 12px 0;
+  min-height: 44px;
+  padding: 10px 0;
   border-bottom: 1px solid #eef2f6;
   color: #4b5563;
+  line-height: 1.4;
 }
 
 .analysisItem:last-child {
   padding-bottom: 0;
   border-bottom: 0;
+}
+
+.analysisItem span {
+  color: #5f6b7a;
+  font-size: 13px;
+}
+
+.analysisItem strong {
+  color: #1f2d3d;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
 }
 
 @media (max-width: 1200px) {
@@ -615,10 +805,16 @@
   .mainGrid {
     grid-template-columns: 1fr;
     flex: none;
+    gap: 14px;
   }
 
   .mapCanvas {
-    min-height: 600px;
+    min-height: 620px;
+  }
+
+  .mapFooter {
+    position: static;
+    margin-top: 12px;
   }
 
   .mapToolbar {
@@ -628,6 +824,16 @@
 
   .analysisToolbar {
     align-items: flex-start;
+  }
+
+  .sidebar {
+    width: auto;
+    padding: 0;
+  }
+
+  .sideCard {
+    height: auto;
+    max-height: none;
   }
 
   .sideTabsCard,
@@ -653,7 +859,7 @@
   }
 
   .mapCanvas {
-    min-height: 460px;
+    min-height: 520px;
   }
 
   .mapToolbar {
@@ -665,6 +871,10 @@
   }
 
   .sideTabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sidebar {
+    width: auto;
   }
 }

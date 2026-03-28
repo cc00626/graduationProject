@@ -15,7 +15,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'), // @ 指向 src 目录
     },
   },
-  devServer: {
+  server: {
     proxy: {
       '/api': {
         target: 'http://localhost:5000', // 代理到后端服务器地址

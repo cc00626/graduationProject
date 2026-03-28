@@ -1,14 +1,9 @@
-import React, { useState } from 'react'
-import {
-  DesktopOutlined,
-  FileTextOutlined,
-  GlobalOutlined,
-  AlertOutlined,
-  UserOutlined,
-} from '@ant-design/icons'
-import { Layout, theme, Typography, Avatar, Space } from 'antd'
-import SiderBar from './components/SiderBar'
+import { UserOutlined } from '@ant-design/icons'
+import { Avatar, Button, Layout, Space, Typography, message, theme } from 'antd'
 import { Outlet, useNavigate } from 'react-router-dom'
+import { UserLogout } from '@/services/user'
+import { clearAuth } from '@/utils/auth'
+import SiderBar from './components/SiderBar'
 
 const { Header, Content } = Layout
 const { Title } = Typography
@@ -18,13 +13,26 @@ const AppLayout = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken()
+  const [messageApi, contextHolder] = message.useMessage()
+
+  const handleLogout = async () => {
+    try {
+      await UserLogout()
+    } catch (error) {
+      console.error('logout request failed:', error)
+      // Backend uses stateless token; client-side cleanup is still required.
+    } finally {
+      clearAuth()
+      messageApi.success('退出登录成功')
+      navigate('/login')
+    }
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      {/* 侧边栏 */}
+      {contextHolder}
       <SiderBar />
       <Layout>
-        {/* 顶部栏 */}
         <Header
           style={{
             padding: '0 16px',
@@ -40,10 +48,12 @@ const AppLayout = () => {
           <Space>
             <Avatar icon={<UserOutlined />} />
             <span>管理员：陈久祥</span>
+            <Button type="link" onClick={handleLogout} style={{ paddingInline: 4 }}>
+              退出登录
+            </Button>
           </Space>
         </Header>
 
-        {/* 内容区 */}
         <Content style={{ margin: '16px' }}>
           <div
             style={{
@@ -51,10 +61,9 @@ const AppLayout = () => {
               minHeight: 'calc(100vh - 112px)',
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
-              position: 'relative', // 为绝对定位的地图容器做准备
+              position: 'relative',
             }}
           >
-            {/* 路由子组件渲染位置 */}
             <Outlet />
           </div>
         </Content>
@@ -64,3 +73,4 @@ const AppLayout = () => {
 }
 
 export default AppLayout
+
