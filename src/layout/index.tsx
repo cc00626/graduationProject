@@ -1,76 +1,74 @@
-import { UserOutlined } from '@ant-design/icons'
-import { Avatar, Button, Layout, Space, Typography, message, theme } from 'antd'
-import { Outlet, useNavigate } from 'react-router-dom'
+﻿import { useMemo } from 'react'
+import { AppstoreOutlined, GlobalOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { Avatar, Button, message } from 'antd'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { UserLogout } from '@/services/user'
 import { clearAuth } from '@/utils/auth'
-import SiderBar from './components/SiderBar'
-
-const { Header, Content } = Layout
-const { Title } = Typography
+import style from './index.module.scss'
 
 const AppLayout = () => {
   const navigate = useNavigate()
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken()
+  const location = useLocation()
   const [messageApi, contextHolder] = message.useMessage()
+
+  const navItems = useMemo(
+    () => [
+      { path: '/dashboard', label: '监控总览', icon: <AppstoreOutlined /> },
+      { path: '/map', label: '灾害分布', icon: <GlobalOutlined /> },
+    ],
+    [],
+  )
 
   const handleLogout = async () => {
     try {
       await UserLogout()
     } catch (error) {
       console.error('logout request failed:', error)
-      // Backend uses stateless token; client-side cleanup is still required.
     } finally {
       clearAuth()
-      messageApi.success('退出登录成功')
+      messageApi.success('已安全退出登录')
       navigate('/login')
     }
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <div className={style.layoutShell}>
       {contextHolder}
-      <SiderBar />
-      <Layout>
-        <Header
-          style={{
-            padding: '0 16px',
-            background: colorBgContainer,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Title level={4} style={{ margin: 0 }}>
-            广州市气象灾害检测与预警系统
-          </Title>
-          <Space>
-            <Avatar icon={<UserOutlined />} />
-            <span>管理员：陈久祥</span>
-            <Button type="link" onClick={handleLogout} style={{ paddingInline: 4 }}>
-              退出登录
-            </Button>
-          </Space>
-        </Header>
+      <header className={style.topBar}>
+        <div className={style.brandWrap}>
+          <span className={style.brandBadge}>气象</span>
+          <h1 className={style.brandTitle}>气象灾害综合风险监测平台</h1>
+        </div>
 
-        <Content style={{ margin: '16px' }}>
-          <div
-            style={{
-              padding: 24,
-              minHeight: 'calc(100vh - 112px)',
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG,
-              position: 'relative',
-            }}
-          >
-            <Outlet />
-          </div>
-        </Content>
-      </Layout>
-    </Layout>
+        <nav className={style.navWrap}>
+          {navItems.map(item => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `${style.navItem} ${isActive || location.pathname === item.path ? style.navItemActive : ''}`
+              }
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className={style.userWrap}>
+          <Avatar icon={<UserOutlined />} className={style.userAvatar} />
+          <span className={style.userText}>管理员</span>
+          <Button type="text" icon={<LogoutOutlined />} className={style.logoutBtn} onClick={handleLogout}>
+            退出
+          </Button>
+        </div>
+      </header>
+
+      <main className={style.pageBody}>
+        <Outlet />
+      </main>
+    </div>
   )
 }
 
 export default AppLayout
-

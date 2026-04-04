@@ -1,0 +1,35 @@
+﻿.mapHost {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.mapCanvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mapCanvas :global(.ol-viewport) {
+  border-radius: 12px;
+}
+
+.mapCanvas :global(.ol-control) {
+  display: none;
+}
+
+.mapCanvas :global(.ol-attribution) {
+  display: none;
+}
+
+.mapLoading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  color: #7fdfff;
+  letter-spacing: 0.08em;
+  background: rgba(3, 21, 51, 0.45);
+  backdrop-filter: blur(1px);
+}
