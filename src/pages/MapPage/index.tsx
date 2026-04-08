@@ -12,9 +12,11 @@ import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style, Text } from 'ol/style'
 import { BorderOutlined, ClearOutlined } from '@ant-design/icons'
 import { useMeasureTool } from '@/hooks/useMeasureTool'
-import { getWeatherNow, getWindPoll } from '@/services/wind'
+import { getWindHistory, getWindPoll } from '@/services/wind'
+import type { WindHistoryItem } from '@/services/wind'
 import style from './index.module.scss'
 import WindDistributionChart from './WindChart'
+import WindTrendChart from './WindQuShi'
 type WindDistrictData = {
   district: string
   levelCounts: number[]
@@ -31,6 +33,7 @@ const MapComponent = () => {
   const windData = useRef<WindPollData | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
   const [chartData, setChartData] = useState<WindDistrictData[]>([])
+  const [trendData, setTrendData] = useState<WindHistoryItem[]>([])
 
   const getGzStyle = (feature: any) => {
     const districtName = feature.get('name')
@@ -183,15 +186,53 @@ const MapComponent = () => {
       console.error('获取风速失败', error)
     }
   }
+  useEffect(() => {
+    // 首次进入页面异步触发一次，避免在 effect 同步阶段直接触发 setState
+    const initialTimer = setTimeout(() => {
+      handleGetWindData()
+    }, 0)
+
+    // 设置定时器
+    const timer = setInterval(() => {
+      console.log('正在执行自动轮询...')
+      handleGetWindData()
+    }, 18000000000)
+
+    // 🔴 关键：组件卸载时必须清除定时器，防止内存泄漏和无效请求
+    return () => {
+      clearTimeout(initialTimer)
+      clearInterval(timer)
+    }
+  }, [])
 
   const handleGetWeatherData = async () => {
     try {
-      const res = await getWeatherNow('440100', 'base', 'JSON')
-      console.log('天气数据：', res)
+      const res = await getWindHistory({
+        page: 1,
+        pageSize: 20,
+        sort: 'asc',
+      })
+      const recentItems = Array.isArray(res?.data) ? res.data : []
+      const sortedByTime = [...recentItems].sort((a, b) => {
+        const ta = a?.time ? new Date(a.time).getTime() : NaN
+        const tb = b?.time ? new Date(b.time).getTime() : NaN
+        if (Number.isNaN(ta) || Number.isNaN(tb)) return 0
+        return ta - tb
+      })
+      setTrendData(sortedByTime)
+      console.log('历史风速数据：', res)
     } catch (error) {
-      console.error('获取天气失败', error)
+      console.error('获取历史数据失败', error)
     }
   }
+
+  useEffect(() => {
+    const initialHistoryTimer = setTimeout(() => {
+      handleGetWeatherData()
+    }, 0)
+
+    return () => clearTimeout(initialHistoryTimer)
+  }, [])
 
   return (
     <>
@@ -220,10 +261,13 @@ const MapComponent = () => {
         style={{ position: 'absolute', right: '160px', top: '50px', color: 'white' }}
         onClick={() => handleGetWeatherData()}
       >
-        查看天气数据
+        查看趋势数据
       </button>
-      <div>
+      <div className={style.chartContainer}>
         <WindDistributionChart data={chartData} />
+      </div>
+      <div className={style.trendContainer}>
+        <WindTrendChart data={trendData} />
       </div>
     </>
   )

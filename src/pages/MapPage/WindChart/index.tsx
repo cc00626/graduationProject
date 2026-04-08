@@ -81,7 +81,7 @@ const WindDistributionChart: React.FC<WindChartProps> = ({ data }) => {
     myChart.current.setOption(option)
   }, [data])
 
-  return <div ref={chartRef} style={{ width: '100%', height: '300px' }} />
+  return <div ref={chartRef} style={{ width: '100%', height: '280px' }} />
 }
 
 export default WindDistributionChart

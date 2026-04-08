@@ -1,4 +1,4 @@
-﻿import request from '@/services/request'
+import request from '@/services/request'
 
 export async function getWindPoll(lastTime?: string) {
   return request.get('/poll', {
@@ -14,6 +14,33 @@ export async function getWeatherNow(
 ) {
   return request.get('/weather/now', {
     params: { city, extensions, output },
+    timeout: 40000,
+  })
+}
+
+export type HistoryQuery = {
+  page?: number
+  pageSize?: number
+  sort?: 'asc' | 'desc'
+  startTime?: string
+  endTime?: string
+}
+
+export type WindHistoryItem = {
+  maxWind?: number | { value?: number; station?: string }
+  minWind?: number | { value?: number; station?: string }
+  maxStation?: string
+  minStation?: string
+  time?: string | Date
+  station?: string
+  stationName?: string
+  site?: string
+  siteName?: string
+}
+
+export async function getWindHistory(params?: HistoryQuery) {
+  return request.get('/history', {
+    params: params || {},
     timeout: 40000,
   })
 }

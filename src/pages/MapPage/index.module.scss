@@ -53,3 +53,41 @@
     }
   }
 }
+.chartContainer {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1000px;
+  height: 280px;
+  background: rgba(0, 21, 41, 0.75); // 半透明深色
+  backdrop-filter: blur(10px); // 毛玻璃效果
+  border: 1px solid rgba(24, 144, 255, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  z-index: 10;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.chartContainer {
+  left: 2%;
+  transform: none;
+  width: 48%;
+  max-width: none;
+}
+
+.trendContainer {
+  position: absolute;
+  bottom: 20px;
+  right: 2%;
+  width: 48%;
+  height: 280px;
+  background: rgba(0, 21, 41, 0.75);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(24, 144, 255, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  z-index: 10;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
