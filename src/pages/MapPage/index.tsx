@@ -9,12 +9,12 @@ import VectorLayer from 'ol/layer/Vector'
 import { fromLonLat } from 'ol/proj'
 import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
-import { Fill, Stroke, Style } from 'ol/style'
+import { Fill, Stroke, Style, Text } from 'ol/style'
 import { BorderOutlined, ClearOutlined } from '@ant-design/icons'
 import { useMeasureTool } from '@/hooks/useMeasureTool'
-import { getWindPoll } from '@/services/wind'
+import { getWeatherNow, getWindPoll } from '@/services/wind'
 import style from './index.module.scss'
-
+import WindDistributionChart from './WindChart'
 type WindDistrictData = {
   district: string
   levelCounts: number[]
@@ -30,14 +30,7 @@ const MapComponent = () => {
   const vectorLayerRef = useRef<VectorLayer<VectorSource> | null>(null)
   const windData = useRef<WindPollData | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
-
-  // const getColorByLevel = useCallback((level: number) => {
-  //   if (level >= 8) return 'rgba(222, 66, 91, 0.45)'
-  //   if (level >= 6) return 'rgba(239, 125, 50, 0.4)'
-  //   if (level >= 4) return 'rgba(243, 178, 26, 0.35)'
-  //   if (level >= 2) return 'rgba(47, 125, 246, 0.3)'
-  //   return 'rgba(24, 144, 255, 0.1)'
-  // }, [])
+  const [chartData, setChartData] = useState<WindDistrictData[]>([])
 
   const getGzStyle = (feature: any) => {
     const districtName = feature.get('name')
@@ -69,6 +62,17 @@ const MapComponent = () => {
     return new Style({
       stroke: new Stroke({ color: '#fff', width: 1 }),
       fill: new Fill({ color: fillColor }),
+      text: new Text({
+        text: districtName,
+        font: 'bold 14px "Microsoft YaHei", "Helvetica Neue", sans-serif', // 优先使用雅黑，加粗
+        fill: new Fill({ color: '#222' }), // 深灰色文字
+        // ✨ 重点：加粗的白色光晕
+        stroke: new Stroke({ color: 'rgba(255, 255, 255, 0.95)', width: 3.5 }),
+        textAlign: 'center',
+        textBaseline: 'middle',
+        // ✨ 新增属性：防止文字重叠
+        overflow: false, // 当文字超出区域边缘时不显示（虽然会导致越秀这种小区域名字消失，但能保证大图整洁）
+      }),
     })
   }
   // 初始化地图
@@ -156,12 +160,20 @@ const MapComponent = () => {
     }
   }, [getGzStyle])
 
+  //获取风速站点数据
   const handleGetWindData = async () => {
     try {
       const res = await getWindPoll(new Date(0).toISOString())
       if (res && res.data) {
+        // 更新 Ref 供地图样式使用（地图样式 getGzStyle 依赖 windData.current）
         windData.current = res.data as WindPollData
-
+        // 更新 State 供 ECharts 使用
+        setChartData(res.data.districts || [])
+        // 手动触发地图重绘以更新颜色
+        if (vectorLayerRef.current) {
+          vectorLayerRef.current.changed()
+        }
+        console.log('数据已更新：', res.data)
         if (vectorLayerRef.current) {
           vectorLayerRef.current.changed()
         }
@@ -169,6 +181,15 @@ const MapComponent = () => {
       }
     } catch (error) {
       console.error('获取风速失败', error)
+    }
+  }
+
+  const handleGetWeatherData = async () => {
+    try {
+      const res = await getWeatherNow('440100', 'base', 'JSON')
+      console.log('天气数据：', res)
+    } catch (error) {
+      console.error('获取天气失败', error)
     }
   }
 
@@ -195,6 +216,15 @@ const MapComponent = () => {
       >
         查看风速数据
       </button>
+      <button
+        style={{ position: 'absolute', right: '160px', top: '50px', color: 'white' }}
+        onClick={() => handleGetWeatherData()}
+      >
+        查看天气数据
+      </button>
+      <div>
+        <WindDistributionChart data={chartData} />
+      </div>
     </>
   )
 }
