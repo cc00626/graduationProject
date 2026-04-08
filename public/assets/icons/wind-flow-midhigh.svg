@@ -1,0 +1,22 @@
+﻿<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow-midhigh" x="-42%" y="-42%" width="184%" height="184%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.9" flood-color="#503005" flood-opacity="0.38"/>
+    </filter>
+    <linearGradient id="shaft-midhigh" x1="36" y1="58" x2="36" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#c9831d"/>
+      <stop offset="100%" stop-color="#ffd07a"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#shadow-midhigh)">
+    <circle cx="36" cy="36" r="4.3" fill="#fffaf0" stroke="#5a3810" stroke-width="1.1"/>
+    <path d="M36 58 L36 18.5" stroke="#5a350a" stroke-width="6.6" stroke-linecap="round" opacity="0.35"/>
+    <path d="M36 58 L36 18.5" stroke="url(#shaft-midhigh)" stroke-width="5.3" stroke-linecap="round"/>
+    <path d="M36 6 L25.5 22.5 L46.5 22.5 Z" fill="#f2a637" stroke="#664111" stroke-width="1.2"/>
+    <path d="M36 50 L48.8 40.2" stroke="#ffe2ad" stroke-width="3.9" stroke-linecap="round"/>
+    <path d="M36 43.5 L47.2 34.8" stroke="#ffe2ad" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M36 37 L45.3 29.8" stroke="#ffe2ad" stroke-width="3.1" stroke-linecap="round"/>
+    <path d="M14.5 57 C20 52, 24.5 48.8, 30.3 46.9" stroke="#ffd596" stroke-width="3.1" stroke-linecap="round" fill="none" opacity="0.92"/>
+    <path d="M16.5 63 C22 58.2, 27.8 55, 33.6 53.6" stroke="#ffd596" stroke-width="2.7" stroke-linecap="round" fill="none" opacity="0.84"/>
+  </g>
+</svg>

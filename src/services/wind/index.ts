@@ -18,6 +18,12 @@ export async function getWeatherNow(
   })
 }
 
+export async function getGuangzhouWindData() {
+  return request.get('/weather/guangzhou/wind', {
+    timeout: 40000,
+  })
+}
+
 export type HistoryQuery = {
   page?: number
   pageSize?: number

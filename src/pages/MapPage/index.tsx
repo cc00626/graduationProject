@@ -16,6 +16,7 @@ import { getWindHistory, getWindPoll } from '@/services/wind'
 import type { WindHistoryItem } from '@/services/wind'
 import style from './index.module.scss'
 import WindDistributionChart from './WindChart'
+import WindArrowLayer from './WindArrowLayer'
 import WindTrendChart from './WindQuShi'
 type WindDistrictData = {
   district: string
@@ -34,13 +35,14 @@ const MapComponent = () => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [chartData, setChartData] = useState<WindDistrictData[]>([])
   const [trendData, setTrendData] = useState<WindHistoryItem[]>([])
+  const [arrowRefreshKey, setArrowRefreshKey] = useState(0)
 
   const getGzStyle = (feature: any) => {
     const districtName = feature.get('name')
     const data = windData.current
 
-    // 默认样式：半透明淡蓝
-    let fillColor = 'rgba(0, 120, 255, 0.15)'
+    // 默认样式：低饱和冷色，避免和底图争抢注意力
+    let fillColor = 'rgba(45, 84, 124, 0.12)'
 
     if (data?.districts) {
       const info = data.districts.find((d: any) => d.district === districtName)
@@ -51,26 +53,26 @@ const MapComponent = () => {
         // 从高等级向低等级遍历 (从右往左)，找到第一个有数值的等级
         // 索引 4: 五级, 3: 四级, 2: 三级, 1: 二级, 0: 一级
         if (counts[4] > 0)
-          fillColor = 'rgba(255, 0, 0, 0.6)' // 五级-红色
+          fillColor = 'rgba(204, 61, 61, 0.26)' // 五级-红
         else if (counts[3] > 0)
-          fillColor = 'rgba(255, 126, 0, 0.6)' // 四级-橙色
+          fillColor = 'rgba(235, 112, 60, 0.24)' // 四级-橙红
         else if (counts[2] > 0)
-          fillColor = 'rgba(255, 255, 0, 0.6)' // 三级-黄色
+          fillColor = 'rgba(245, 176, 65, 0.22)' // 三级-橙黄
         else if (counts[1] > 0)
-          fillColor = 'rgba(173, 255, 47, 0.6)' // 二级-黄绿
-        else if (counts[0] > 0) fillColor = 'rgba(0, 191, 255, 0.4)' // 一级-浅蓝
+          fillColor = 'rgba(44, 171, 130, 0.2)' // 二级-绿
+        else if (counts[0] > 0) fillColor = 'rgba(66, 135, 245, 0.18)' // 一级-蓝
       }
     }
 
     return new Style({
-      stroke: new Stroke({ color: '#fff', width: 1 }),
+      stroke: new Stroke({ color: 'rgba(219, 231, 243, 0.95)', width: 1.2 }),
       fill: new Fill({ color: fillColor }),
       text: new Text({
         text: districtName,
         font: 'bold 14px "Microsoft YaHei", "Helvetica Neue", sans-serif', // 优先使用雅黑，加粗
-        fill: new Fill({ color: '#222' }), // 深灰色文字
+        fill: new Fill({ color: '#10233a' }), // 深蓝灰文字，提高在浅底图上的识别度
         // ✨ 重点：加粗的白色光晕
-        stroke: new Stroke({ color: 'rgba(255, 255, 255, 0.95)', width: 3.5 }),
+        stroke: new Stroke({ color: 'rgba(255, 255, 255, 0.98)', width: 4 }),
         textAlign: 'center',
         textBaseline: 'middle',
         // ✨ 新增属性：防止文字重叠
@@ -84,8 +86,8 @@ const MapComponent = () => {
     const vectorLayer = new VectorLayer({
       source: vectorSource,
       style: new Style({
-        fill: new Fill({ color: 'rgba(0, 120, 255, 0.12)' }),
-        stroke: new Stroke({ color: '#0066cc', width: 2 }),
+        fill: new Fill({ color: 'rgba(45, 84, 124, 0.12)' }),
+        stroke: new Stroke({ color: 'rgba(133, 170, 206, 0.9)', width: 1.8 }),
       }),
     })
 
@@ -251,6 +253,7 @@ const MapComponent = () => {
           )}
         </div>
       </div>
+      <WindArrowLayer mapRef={mapRef} refreshKey={arrowRefreshKey} />
       <button
         style={{ position: 'absolute', right: '30px', top: '50px', color: 'white' }}
         onClick={() => handleGetWindData()}
@@ -262,6 +265,12 @@ const MapComponent = () => {
         onClick={() => handleGetWeatherData()}
       >
         查看趋势数据
+      </button>
+      <button
+        style={{ position: 'absolute', right: '290px', top: '50px', color: 'white' }}
+        onClick={() => setArrowRefreshKey(prev => prev + 1)}
+      >
+        刷新风向
       </button>
       <div className={style.chartContainer}>
         <WindDistributionChart data={chartData} />
