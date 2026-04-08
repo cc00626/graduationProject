@@ -1,93 +1,93 @@
+$page-padding: 12px;
+$header-height: 64px;
+$panel-gap: 12px;
+$right-panel-width: 34%;
+$left-panel-width: calc(100% - #{$right-panel-width} - #{$page-padding * 2} - #{$panel-gap});
+
+$panel-bg: rgba(9, 24, 43, 0.82);
+$panel-border: 1px solid rgba(132, 176, 224, 0.38);
+$panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+
 .page {
+  position: fixed;
+  top: calc(#{$header-height} + #{$page-padding});
+  left: $page-padding;
+  width: $left-panel-width;
+  height: calc(100vh - #{$header-height} - #{$page-padding * 2});
+}
+
+.mapContainer {
+  position: relative;
   width: 100%;
-  height: 100vh;
-  .mapContainer {
-    width: 60%;
-    height: calc(85vh - 68px);
-    position: relative;
-    // 工具栏样式
-    .toolPanel {
-      position: absolute;
-      top: 2.5rem;
-      right: 0.5rem;
-      z-index: 1000;
-      .expandBtn {
-        display: block;
-        margin: 1px;
-        padding: 0;
-        color: var(--ol-subtle-foreground-color);
-        font-weight: bold;
-        text-decoration: none;
-        font-size: inherit;
-        text-align: center;
-        height: 1.375em;
-        width: 1.375em;
-        line-height: 0.4em;
-        background-color: var(--ol-background-color);
-        border: none;
-        border-radius: 2px;
-      }
-    }
-
-    .toolMeasure {
-      position: absolute;
-      top: 4.5rem;
-      right: 0.5rem;
-      z-index: 1000;
-      .expandBtn {
-        display: block;
-        margin: 1px;
-        padding: 0;
-        color: var(--ol-subtle-foreground-color);
-        font-weight: bold;
-        text-decoration: none;
-        font-size: inherit;
-        text-align: center;
-        height: 1.375em;
-        width: 1.375em;
-        line-height: 0.4em;
-        background-color: var(--ol-background-color);
-        border: none;
-        border-radius: 2px;
-      }
-    }
-  }
+  height: 100%;
+  border-radius: 2px;
+  overflow: hidden;
+  border: $panel-border;
+  box-shadow: $panel-shadow;
 }
-.chartContainer {
+
+.toolPanel,
+.toolMeasure {
   position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 1000px;
-  height: 280px;
-  background: rgba(0, 21, 41, 0.75); // 半透明深色
-  backdrop-filter: blur(10px); // 毛玻璃效果
-  border: 1px solid rgba(24, 144, 255, 0.3);
-  border-radius: 8px;
-  padding: 20px;
+  right: 0.5rem;
+  z-index: 1000;
+}
+
+.toolPanel {
+  top: 2.5rem;
+}
+
+.toolMeasure {
+  top: 4.5rem;
+}
+
+.expandBtn {
+  display: block;
+  margin: 1px;
+  padding: 0;
+  width: 1.375em;
+  height: 1.375em;
+  line-height: 0.4em;
+  text-align: center;
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--ol-subtle-foreground-color);
+  background-color: var(--ol-background-color);
+  border: none;
+  border-radius: 0;
+}
+
+.chartContainer,
+.trendContainer {
+  position: fixed;
+  right: $page-padding;
+  width: $right-panel-width;
+  padding: 14px;
+  background: $panel-bg;
+  border: $panel-border;
+  border-radius: 0;
+  box-shadow: $panel-shadow;
+  backdrop-filter: blur(2px);
+  overflow: hidden;
   z-index: 10;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .chartContainer {
-  left: 2%;
-  transform: none;
-  width: 48%;
-  max-width: none;
+  top: calc(#{$header-height} + #{$page-padding});
+  height: calc((100vh - #{$header-height} - #{$page-padding * 2} - #{$panel-gap}) / 2);
 }
 
 .trendContainer {
-  position: absolute;
-  bottom: 20px;
-  right: 2%;
-  width: 48%;
-  height: 280px;
-  background: rgba(0, 21, 41, 0.75);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(24, 144, 255, 0.3);
-  border-radius: 8px;
-  padding: 20px;
-  z-index: 10;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  top: calc(
+    #{$header-height} + #{$page-padding} +
+      (100vh - #{$header-height} - #{$page-padding * 2} - #{$panel-gap}) / 2 + #{$panel-gap}
+  );
+  height: calc((100vh - #{$header-height} - #{$page-padding * 2} - #{$panel-gap}) / 2);
+}
+
+/* 不改 TSX：覆盖内联 top:50px 的顶部操作按钮，避免被 header 遮挡 */
+:global(button[style*='top: 50px']) {
+  top: calc(#{$header-height} + 10px) !important;
+  z-index: 1200 !important;
 }

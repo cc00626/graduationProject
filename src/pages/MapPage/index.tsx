@@ -36,7 +36,8 @@ const MapComponent = () => {
   const [chartData, setChartData] = useState<WindDistrictData[]>([])
   const [trendData, setTrendData] = useState<WindHistoryItem[]>([])
   const [arrowRefreshKey, setArrowRefreshKey] = useState(0)
-
+  // 记录当前选中的区名
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null) //选中高亮状态
   const getGzStyle = (feature: any) => {
     const districtName = feature.get('name')
     const data = windData.current
