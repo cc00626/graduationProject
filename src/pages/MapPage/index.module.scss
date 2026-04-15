@@ -59,7 +59,8 @@ $panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
 }
 
 .chartContainer,
-.trendContainer {
+.trendContainer,
+.detailCard {
   position: fixed;
   right: $page-padding;
   width: $right-panel-width;
@@ -84,6 +85,33 @@ $panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
       (100vh - #{$header-height} - #{$page-padding * 2} - #{$panel-gap}) / 2 + #{$panel-gap}
   );
   height: calc((100vh - #{$header-height} - #{$page-padding * 2} - #{$panel-gap}) / 2);
+}
+
+.detailCard {
+  left: $page-padding;
+  right: auto;
+  bottom: $page-padding;
+  width: min(360px, calc(100vw - #{$page-padding * 2}));
+  z-index: 20;
+
+  h3 {
+    margin: 0 0 10px;
+    color: #e8f3ff;
+    font-size: 18px;
+  }
+
+  p {
+    margin: 4px 0;
+    color: rgba(232, 243, 255, 0.9);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+.detailSection + .detailSection {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(132, 176, 224, 0.22);
 }
 
 /* 不改 TSX：覆盖内联 top:50px 的顶部操作按钮，避免被 header 遮挡 */

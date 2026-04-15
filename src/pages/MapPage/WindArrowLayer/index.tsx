@@ -4,6 +4,7 @@ import OLMap from 'ol/Map'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import Feature from 'ol/Feature'
+import type { FeatureLike } from 'ol/Feature'
 import GeoJSON from 'ol/format/GeoJSON'
 import { getCenter } from 'ol/extent'
 import Point from 'ol/geom/Point'
@@ -136,7 +137,7 @@ const WindArrowLayer: React.FC<WindArrowLayerProps> = ({ mapRef, visible = true,
   const animationFrameRef = useRef<number | null>(null)
   const animationTimeRef = useRef(0)
 
-  const windIconStyleFunction = useCallback((feature: Feature<Geometry>) => {
+  const windIconStyleFunction = useCallback((feature: FeatureLike) => {
     const dir = String(feature.get('winddirection') || '无风')
     const power = Number(feature.get('windpower_value')) || 0
     const src = getWindIconPath(power)
@@ -191,7 +192,7 @@ const WindArrowLayer: React.FC<WindArrowLayerProps> = ({ mapRef, visible = true,
         const districts = extractDistricts(res?.data)
 
         const features = districts
-          .map(record => {
+          .map((record): Feature<Point> | null => {
             const districtName = getDistrictName(record)
             const point = centroidMap.get(normalizeDistrictName(districtName))
             if (!point) return null
@@ -204,7 +205,7 @@ const WindArrowLayer: React.FC<WindArrowLayerProps> = ({ mapRef, visible = true,
             })
             return feature
           })
-          .filter((item): item is Feature => item !== null)
+          .filter((item): item is Feature<Point> => item !== null)
 
         if (!features.length) {
           console.warn('[WindArrowLayer] 未生成风向要素，请检查区名匹配与接口数据', districts)

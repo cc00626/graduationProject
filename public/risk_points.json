@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "某小学", "type": "school" },
+      "geometry": { "type": "Point", "coordinates": [113.26, 23.13] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "某医院", "type": "hospital" },
+      "geometry": { "type": "Point", "coordinates": [113.32, 23.15] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "某养老院", "type": "eldercare" },
+      "geometry": { "type": "Point", "coordinates": [113.291, 23.177] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "某地铁站", "type": "station" },
+      "geometry": { "type": "Point", "coordinates": [113.342, 23.204] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "某社区卫生中心", "type": "clinic" },
+      "geometry": { "type": "Point", "coordinates": [113.367, 23.239] }
+    }
+  ]
+}

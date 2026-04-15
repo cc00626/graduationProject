@@ -1,0 +1,62 @@
+.panel {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  min-width: 132px;
+  padding: 10px;
+  background: rgba(8, 24, 45, 0.84);
+  border: 1px solid rgba(132, 176, 224, 0.26);
+  border-radius: 12px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px);
+}
+
+.title {
+  margin-bottom: 8px;
+  color: #d8ebff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+}
+
+.item,
+.itemActive {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  color: rgba(216, 235, 255, 0.82);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(132, 176, 224, 0.16);
+  border-radius: 10px;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.item:hover,
+.itemActive:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.itemActive {
+  color: #f3fbff;
+  background: rgba(77, 183, 255, 0.14);
+  border-color: rgba(77, 183, 255, 0.34);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.85;
+}

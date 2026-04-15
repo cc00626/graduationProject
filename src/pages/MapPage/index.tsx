@@ -1,9 +1,8 @@
-﻿import { useEffect, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import 'ol/ol.css'
 import OLMap from 'ol/Map'
 import View from 'ol/View'
 import { FullScreen, defaults as defaultControls } from 'ol/control'
-import GeoJSON from 'ol/format/GeoJSON'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import { fromLonLat } from 'ol/proj'
@@ -11,13 +10,17 @@ import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style, Text } from 'ol/style'
 import { BorderOutlined, ClearOutlined } from '@ant-design/icons'
+import { LAYERS } from '@/constant'
 import { useMeasureTool } from '@/hooks/useMeasureTool'
-import { getWindHistory, getWindPoll } from '@/services/wind'
-import type { WindHistoryItem } from '@/services/wind'
+import { getWeatherNow, getWindHistory, getWindPoll } from '@/services/wind'
+import type { WeatherNowItem, WeatherNowResponse, WindHistoryItem } from '@/services/wind'
 import style from './index.module.scss'
+import DistrictInsightPanel from './DistrictInsightPanel'
+import LayerManager from './LayerManager'
 import WindDistributionChart from './WindChart'
 import WindArrowLayer from './WindArrowLayer'
 import WindTrendChart from './WindQuShi'
+import { createDistrictLayer, createWaterLayer } from './mapLayers'
 type WindDistrictData = {
   district: string
   levelCounts: number[]
@@ -27,6 +30,9 @@ type WindPollData = {
   districts?: WindDistrictData[]
 }
 
+/*
+The function `handleGetDistrictWeatherNow` takes a district name, fetches the latest weather data for the district, and updates the state of the application with the latest data. The function `handleGetWeatherData` takes a date and fetch the latest weather data for the date. The function `handleGetWindData` takes an optional date and fetch the latest wind data for the date. The function `handleGetWeatherNow` takes a district name and fetches the latest weather data for the district. The function `handleGetDistrictWeatherNow` takes a district name, fetches the latest weather data for the district, and updates the state of the application with the latest data.
+*/
 const MapComponent = () => {
   const mapElement = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<OLMap | null>(null)
@@ -38,49 +44,119 @@ const MapComponent = () => {
   const [arrowRefreshKey, setArrowRefreshKey] = useState(0)
   // 记录当前选中的区名
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null) //选中高亮状态
-  const getGzStyle = (feature: any) => {
-    const districtName = feature.get('name')
-    const data = windData.current
+  const [activeDetail, setActiveDetail] = useState<WindDistrictData | null>(null)
+  const [weatherNow, setWeatherNow] = useState<WeatherNowItem | null>(null)
+  const [weatherMeta, setWeatherMeta] = useState<WeatherNowResponse | null>(null)
+  const [weatherLoading, setWeatherLoading] = useState(false)
+  const [activeLayers, setActiveLayers] = useState<string[]>([LAYERS.DISTRICT])
+  // const getGzStyle = (feature: any) => {
+  //   const districtName = feature.get('name')
+  //   const data = windData.current
 
-    // 默认样式：低饱和冷色，避免和底图争抢注意力
-    let fillColor = 'rgba(45, 84, 124, 0.12)'
+  //   // 默认样式：低饱和冷色，避免和底图争抢注意力
+  //   let fillColor = 'rgba(45, 84, 124, 0.12)'
 
-    if (data?.districts) {
-      const info = data.districts.find((d: any) => d.district === districtName)
+  //   if (data?.districts) {
+  //     const info = data.districts.find((d: any) => d.district === districtName)
 
-      if (info && info.levelCounts) {
-        const counts = info.levelCounts // [13, 0, 0, 0, 0]
+  //     if (info && info.levelCounts) {
+  //       const counts = info.levelCounts // [13, 0, 0, 0, 0]
 
-        // 从高等级向低等级遍历 (从右往左)，找到第一个有数值的等级
-        // 索引 4: 五级, 3: 四级, 2: 三级, 1: 二级, 0: 一级
-        if (counts[4] > 0)
-          fillColor = 'rgba(204, 61, 61, 0.26)' // 五级-红
-        else if (counts[3] > 0)
-          fillColor = 'rgba(235, 112, 60, 0.24)' // 四级-橙红
-        else if (counts[2] > 0)
-          fillColor = 'rgba(245, 176, 65, 0.22)' // 三级-橙黄
-        else if (counts[1] > 0)
-          fillColor = 'rgba(44, 171, 130, 0.2)' // 二级-绿
-        else if (counts[0] > 0) fillColor = 'rgba(66, 135, 245, 0.18)' // 一级-蓝
+  //       // 从高等级向低等级遍历 (从右往左)，找到第一个有数值的等级
+  //       // 索引 4: 五级, 3: 四级, 2: 三级, 1: 二级, 0: 一级
+  //       if (counts[4] > 0)
+  //         fillColor = 'rgba(204, 61, 61, 0.26)' // 五级-红
+  //       else if (counts[3] > 0)
+  //         fillColor = 'rgba(235, 112, 60, 0.24)' // 四级-橙红
+  //       else if (counts[2] > 0)
+  //         fillColor = 'rgba(245, 176, 65, 0.22)' // 三级-橙黄
+  //       else if (counts[1] > 0)
+  //         fillColor = 'rgba(44, 171, 130, 0.2)' // 二级-绿
+  //       else if (counts[0] > 0) fillColor = 'rgba(66, 135, 245, 0.18)' // 一级-蓝
+  //     }
+  //   }
+
+  //   return new Style({
+  //     stroke: new Stroke({ color: 'rgba(219, 231, 243, 0.95)', width: 1.2 }),
+  //     fill: new Fill({ color: fillColor }),
+  //     text: new Text({
+  //       text: districtName,
+  //       font: 'bold 14px "Microsoft YaHei", "Helvetica Neue", sans-serif', // 优先使用雅黑，加粗
+  //       fill: new Fill({ color: '#10233a' }), // 深蓝灰文字，提高在浅底图上的识别度
+  //       // ✨ 重点：加粗的白色光晕
+  //       stroke: new Stroke({ color: 'rgba(255, 255, 255, 0.98)', width: 4 }),
+  //       textAlign: 'center',
+  //       textBaseline: 'middle',
+  //       // ✨ 新增属性：防止文字重叠
+  //       overflow: false, // 当文字超出区域边缘时不显示（虽然会导致越秀这种小区域名字消失，但能保证大图整洁）
+  //     }),
+  //   })
+  // }
+
+  const getGzStyle = useCallback(
+    (feature: any) => {
+      const districtName = feature.get('name')
+      const data = windData.current
+
+      // ✨ 判断当前要素是否被选中
+      const isSelected = districtName === selectedDistrict
+
+      // 1. 默认填充颜色计算逻辑 (保持不变)
+      let fillColor = 'rgba(45, 84, 124, 0.12)'
+      if (data?.districts) {
+        const info = data.districts.find((d: any) => d.district === districtName)
+        if (info && info.levelCounts) {
+          const counts = info.levelCounts
+          if (counts[4] > 0)
+            fillColor = 'rgba(204, 61, 61, 0.26)' // 五级-红
+          else if (counts[3] > 0)
+            fillColor = 'rgba(235, 112, 60, 0.24)' // 四级-橙红
+          else if (counts[2] > 0)
+            fillColor = 'rgba(245, 176, 65, 0.22)' // 三级-橙黄
+          else if (counts[1] > 0)
+            fillColor = 'rgba(44, 171, 130, 0.2)' // 二级-绿
+          else if (counts[0] > 0) fillColor = 'rgba(66, 135, 245, 0.18)' // 一级-蓝
+        }
       }
-    }
 
-    return new Style({
-      stroke: new Stroke({ color: 'rgba(219, 231, 243, 0.95)', width: 1.2 }),
-      fill: new Fill({ color: fillColor }),
-      text: new Text({
-        text: districtName,
-        font: 'bold 14px "Microsoft YaHei", "Helvetica Neue", sans-serif', // 优先使用雅黑，加粗
-        fill: new Fill({ color: '#10233a' }), // 深蓝灰文字，提高在浅底图上的识别度
-        // ✨ 重点：加粗的白色光晕
-        stroke: new Stroke({ color: 'rgba(255, 255, 255, 0.98)', width: 4 }),
-        textAlign: 'center',
-        textBaseline: 'middle',
-        // ✨ 新增属性：防止文字重叠
-        overflow: false, // 当文字超出区域边缘时不显示（虽然会导致越秀这种小区域名字消失，但能保证大图整洁）
-      }),
-    })
-  }
+      // ✨ 2. 动态计算边框样式 (高亮核心)
+      // 如果被选中，使用醒目的颜色（如纯白或亮黄），并加粗
+      const strokeColor = isSelected ? '#ffffff' : 'rgba(219, 231, 243, 0.95)'
+      const strokeWidth = isSelected ? 3.5 : 1.2 // 选中时边框加粗
+
+      // ✨ 3. 动态计算填充样式 (可选优化)
+      // 选中时，可以让填充色略微变亮或增加透明度，突出显示
+      const finalFillColor = isSelected ? 'rgba(255, 255, 255, 0.3)' : fillColor
+
+      return new Style({
+        stroke: new Stroke({
+          color: strokeColor,
+          width: strokeWidth,
+        }),
+        fill: new Fill({
+          color: finalFillColor,
+        }),
+        text: new Text({
+          text: districtName,
+          font: isSelected
+            ? 'bold 16px "Microsoft YaHei", sans-serif' // 选中时文字放大
+            : 'bold 14px "Microsoft YaHei", sans-serif',
+          fill: new Fill({ color: isSelected ? '#fff' : '#10233a' }), // 选中时文字变白
+          stroke: new Stroke({
+            color: isSelected ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.98)',
+            width: isSelected ? 3 : 4,
+          }),
+          textAlign: 'center',
+          textBaseline: 'middle',
+          overflow: false,
+        }),
+        // ✨ 4. 样式层级 (Z-Index)
+        // 确保选中的要素样式绘制在最上层，防止边框被相邻区域遮挡
+        zIndex: isSelected ? 100 : 1,
+      })
+    },
+    [selectedDistrict],
+  )
   // 初始化地图
   useEffect(() => {
     const vectorSource = new VectorSource()
@@ -129,20 +205,13 @@ const MapComponent = () => {
     const map = mapRef.current
     if (!map) return
 
-    const vectorSource = new VectorSource({
-      url: '/广州市.geojson',
-      format: new GeoJSON({
-        dataProjection: 'EPSG:4326',
-        featureProjection: 'EPSG:3857',
-      }),
-    })
-
-    const vectorLayer = new VectorLayer({
-      source: vectorSource,
-      style: getGzStyle,
-    })
+    const vectorLayer = createDistrictLayer(getGzStyle)
+    const waterLayer = createWaterLayer()
+    const vectorSource = vectorLayer.getSource()
+    if (!vectorSource) return
 
     map.addLayer(vectorLayer)
+    map.addLayer(waterLayer)
     vectorLayerRef.current = vectorLayer
 
     const listener = () => {
@@ -162,6 +231,7 @@ const MapComponent = () => {
     vectorSource.on('change', listener)
 
     return () => {
+      map.removeLayer(waterLayer)
       map.removeLayer(vectorLayer)
     }
   }, [getGzStyle])
@@ -237,6 +307,76 @@ const MapComponent = () => {
     return () => clearTimeout(initialHistoryTimer)
   }, [])
 
+  const handleGetDistrictWeatherNow = useCallback(async (districtName: string) => {
+    setWeatherLoading(true)
+    try {
+      const res = await getWeatherNow(districtName, 'base', 'JSON')
+      setWeatherMeta(res || null)
+      const liveInfo = Array.isArray(res?.data?.lives) ? res.data.lives[0] : null
+      setWeatherNow(liveInfo || null)
+      console.log('区域实时天气：', liveInfo)
+    } catch (error) {
+      setWeatherMeta(null)
+      setWeatherNow(null)
+      console.error('获取实时天气失败', error)
+    } finally {
+      setWeatherLoading(false)
+    }
+  }, [])
+
+  //获取单个区域的风速数据
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    const handleMapClick = async (event: any) => {
+      // 获取点击位置的 Feature
+      const feature = map.forEachFeatureAtPixel(event.pixel, f => f)
+
+      if (feature) {
+        const districtName = feature.get('name') // 从 GeoJSON 中获取区名
+        setSelectedDistrict(districtName)
+        console.log('点击了区:', districtName)
+        // 从已有的 windData 中查找该区的详细数据
+        const detail = windData.current?.districts?.find(d => d.district === districtName)
+        if (detail) {
+          setActiveDetail(detail)
+        } else {
+          // 如果数据中没有（可能是暂无站点），可以设置一个默认结构
+          setActiveDetail({ district: districtName, levelCounts: [0, 0, 0, 0, 0] })
+        }
+        await handleGetDistrictWeatherNow(districtName)
+      } else {
+        // 点击空白处关闭详情
+        setSelectedDistrict(null)
+        setActiveDetail(null)
+        setWeatherMeta(null)
+        setWeatherNow(null)
+      }
+    }
+
+    map.on('singleclick', handleMapClick)
+    return () => map.un('singleclick', handleMapClick)
+  }, [handleGetDistrictWeatherNow])
+
+  // 核心切换函数：保证可维护性的关键
+  const toggleLayer = useCallback((layerId: string) => {
+    const map = mapRef.current
+    if (!map) return
+
+    // 找到地图中已存在的图层
+    const layers = map.getLayers().getArray()
+    const targetLayer = layers.find(layer => layer.get('id') === layerId)
+
+    if (targetLayer) {
+      // 如果图层已存在，切换可见性
+      const isVisible = targetLayer.getVisible()
+      targetLayer.setVisible(!isVisible)
+
+      // 更新状态用于 UI 反馈
+      setActiveLayers(prev => (isVisible ? prev.filter(id => id !== layerId) : [...prev, layerId]))
+    }
+  }, [])
   return (
     <>
       <div className={style.page}>
@@ -252,6 +392,8 @@ const MapComponent = () => {
               </button>
             </div>
           )}
+
+          <LayerManager activeLayers={activeLayers} onToggle={toggleLayer} />
         </div>
       </div>
       <WindArrowLayer mapRef={mapRef} refreshKey={arrowRefreshKey} />
@@ -279,6 +421,14 @@ const MapComponent = () => {
       <div className={style.trendContainer}>
         <WindTrendChart data={trendData} />
       </div>
+      <DistrictInsightPanel
+        districtName={selectedDistrict}
+        windDetail={activeDetail}
+        weatherNow={weatherNow}
+        weatherMeta={weatherMeta}
+        weatherLoading={weatherLoading}
+        floodRiskSummary={null}
+      />
     </>
   )
 }

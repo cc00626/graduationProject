@@ -1,0 +1,226 @@
+.panel {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  width: min(320px, calc(100vw - 28px));
+  padding: 14px;
+  background:
+    radial-gradient(circle at top left, rgba(94, 176, 255, 0.16), transparent 38%),
+    linear-gradient(160deg, rgba(7, 18, 35, 0.96), rgba(10, 34, 62, 0.92));
+  border: 1px solid rgba(143, 198, 255, 0.22);
+  border-radius: 18px;
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  z-index: 30;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  h3 {
+    margin: 2px 0 0;
+    color: #f3f9ff;
+    font-size: 18px;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  color: rgba(177, 216, 255, 0.74);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.tab,
+.tabActive {
+  min-width: 54px;
+  padding: 7px 12px;
+  color: rgba(229, 241, 255, 0.82);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tabActive {
+  color: #071a31;
+  background: linear-gradient(135deg, #c9f1ff, #70d3ff);
+  box-shadow: 0 6px 14px rgba(112, 211, 255, 0.22);
+}
+
+.chartShell {
+  padding: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+}
+
+.chart {
+  width: 100%;
+  height: 154px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.metricCard {
+  padding: 8px 6px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.metricLabel {
+  display: block;
+  color: rgba(203, 227, 255, 0.72);
+  font-size: 11px;
+}
+
+.metricValue {
+  display: block;
+  margin-top: 4px;
+  color: #f8fbff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.infoStack {
+  margin-top: 12px;
+}
+
+.kvGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.kvItem {
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+
+  span {
+    display: block;
+    color: rgba(203, 227, 255, 0.68);
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  strong {
+    color: #f5fbff;
+    font-size: 14px;
+    line-height: 1.3;
+    word-break: break-all;
+  }
+}
+
+.footerNote {
+  margin-top: 10px;
+  color: rgba(203, 227, 255, 0.76);
+  font-size: 11px;
+  text-align: right;
+}
+
+.emptyState {
+  padding: 18px 10px;
+  color: rgba(220, 236, 255, 0.75);
+  text-align: center;
+}
+
+.riskList {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.riskItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+
+  strong {
+    display: block;
+    color: #f5fbff;
+    font-size: 13px;
+  }
+
+  span {
+    display: block;
+    margin-top: 4px;
+    color: rgba(203, 227, 255, 0.68);
+    font-size: 11px;
+  }
+
+  em {
+    font-style: normal;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
+.riskHigh {
+  color: #ff8b8b;
+}
+
+.riskMedium {
+  color: #ffcf7a;
+}
+
+@media (max-width: 900px) {
+  .panel {
+    width: calc(100vw - 20px);
+    left: 10px;
+    bottom: 10px;
+    padding: 12px;
+  }
+
+  .panelHeader {
+    flex-direction: column;
+  }
+
+  .metricsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .chart {
+    height: 140px;
+  }
+}
