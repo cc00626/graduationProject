@@ -479,43 +479,73 @@ const MapComponent = () => {
       {selectedStations.length > 0 ? (
         <div className={style.selectionPanel}>
           <div className={style.panelHeader}>
-            <h3>框选站点详情</h3>
+            <h3>区域监测详情</h3>
             <span className={style.countTag}>{selectedStations.length} 个站点</span>
           </div>
 
           <div className={style.stationList}>
-            {selectedStations.map((station, index) => (
-              <div key={station.id || index} className={style.stationCard}>
-                <div className={style.stationName}>
-                  {station.name || '未知站点'}
-                  <span>{station.district}</span>
-                </div>
+            {selectedStations.map((station, index) => {
+              // 动态定义风险状态文案与等级
+              const isDanger = station.status === 'danger'
+              const isWarning = station.status === 'warning'
 
-                <div className={style.dataGrid}>
-                  <div className={style.dataItem}>
-                    <span className={style.label}>实时风速</span>
-                    <span className={style.value}>
-                      {station.wind_speed ?? '--'}
-                      <span className={style.unit}>m/s</span>
-                    </span>
+              return (
+                <div
+                  key={station.id || index}
+                  className={`${style.stationCard} ${style[station.status] || ''}`}
+                >
+                  {/* 状态顶部栏 */}
+                  <div className={style.cardTop}>
+                    <div className={style.mainInfo}>
+                      <span className={style.name}>{station.name || '未知站点'}</span>
+                      <span className={style.dist}>{station.district}</span>
+                    </div>
+                    {/* 风险标签 */}
+                    {(isDanger || isWarning) && (
+                      <div className={style.riskBadge}>{isDanger ? '极高风险' : '中高风险'}</div>
+                    )}
                   </div>
-                  <div className={style.dataItem}>
-                    <span className={style.label}>实时雨量</span>
-                    <span className={style.value}>
-                      {station.rainfall ?? '--'}
-                      <span className={style.unit}>mm</span>
-                    </span>
+
+                  {/* 核心数据网格 */}
+                  <div className={style.dataGrid}>
+                    <div
+                      className={`${style.dataItem} ${station.wind_speed > 17.2 ? style.warn : ''}`}
+                    >
+                      <span className={style.label}>风速</span>
+                      <span className={style.value}>
+                        {station.wind_speed ?? '--'}
+                        <small>m/s</small>
+                      </span>
+                    </div>
+                    <div className={`${style.dataItem} ${station.rainfall > 30 ? style.warn : ''}`}>
+                      <span className={style.label}>雨量</span>
+                      <span className={style.value}>
+                        {station.rainfall ?? '--'}
+                        <small>mm</small>
+                      </span>
+                    </div>
+                    <div className={style.dataItem}>
+                      <span className={style.label}>气温</span>
+                      <span className={style.value}>
+                        {station.temperature ?? '--'}
+                        <small>°C</small>
+                      </span>
+                    </div>
                   </div>
-                  <div className={style.dataItem}>
-                    <span className={style.label}>当前气温</span>
-                    <span className={style.value}>
-                      {station.temperature ?? '--'}
-                      <span className={style.unit}>°C</span>
-                    </span>
-                  </div>
+
+                  {/* 警示描述文案 */}
+                  {(isDanger || isWarning) && (
+                    <div className={style.alertMsg}>
+                      {isDanger
+                        ? '🚨 检测到极端气象，建议立即采取防御措施。'
+                        : '⚠️ 气象数值异常，请持续关注实时监测。'}
+                    </div>
+                  )}
+
+                  <div className={style.updateTime}>更新于: {station.update_time || '--'}</div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className={style.panelFooter}>
