@@ -9,8 +9,7 @@ type LayerManagerProps = {
 const layerOptions = [
   { id: LAYERS.DISTRICT, label: '广州区划' },
   { id: LAYERS.WATER, label: '水系图层' },
-  { id: LAYERS.FLOOD_BUFFER, label: '洪涝缓冲区' },
-  { id: LAYERS.RISK_POINTS, label: '风险点' },
+  { id: LAYERS.STATION, label: '气象站点' },
 ]
 
 const LayerManager: React.FC<LayerManagerProps> = ({ activeLayers, onToggle }) => {

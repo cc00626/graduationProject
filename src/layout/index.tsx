@@ -15,6 +15,7 @@ const AppLayout = () => {
     () => [
       { path: '/dashboard', label: '监控总览', icon: <AppstoreOutlined /> },
       { path: '/map', label: '灾害分布', icon: <GlobalOutlined /> },
+      { path: '/history', label: '历史数据', icon: <GlobalOutlined /> },
     ],
     [],
   )
@@ -58,7 +59,12 @@ const AppLayout = () => {
         <div className={style.userWrap}>
           <Avatar icon={<UserOutlined />} className={style.userAvatar} />
           <span className={style.userText}>管理员</span>
-          <Button type="text" icon={<LogoutOutlined />} className={style.logoutBtn} onClick={handleLogout}>
+          <Button
+            type="text"
+            icon={<LogoutOutlined />}
+            className={style.logoutBtn}
+            onClick={handleLogout}
+          >
             退出
           </Button>
         </div>

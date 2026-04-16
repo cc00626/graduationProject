@@ -13,17 +13,17 @@ export const GUANGZHOU_DISTRICT_MAP = {
 } as const
 
 export const DISTRICT_NAME_TO_CODE: Record<string, string> = {
-  '荔湾区': '440103',
-  '越秀区': '440104',
-  '海珠区': '440105',
-  '天河区': '440106',
-  '白云区': '440111',
-  '黄埔区': '440112',
-  '番禺区': '440113',
-  '花都区': '440114',
-  '南沙区': '440115',
-  '从化区': '440117',
-  '增城区': '440118',
+  荔湾区: '440103',
+  越秀区: '440104',
+  海珠区: '440105',
+  天河区: '440106',
+  白云区: '440111',
+  黄埔区: '440112',
+  番禺区: '440113',
+  花都区: '440114',
+  南沙区: '440115',
+  从化区: '440117',
+  增城区: '440118',
 }
 
 export type DistrictName = keyof typeof DISTRICT_NAME_TO_CODE
@@ -35,6 +35,7 @@ export const LAYERS = {
   FLOOD_BUFFER: 'floodBuffer',
   RISK_POINTS: 'riskPoints',
   WIND_HEAT: 'windHeat',
+  STATION: 'station',
 } as const
 
 export type LayerType = keyof typeof LAYERS

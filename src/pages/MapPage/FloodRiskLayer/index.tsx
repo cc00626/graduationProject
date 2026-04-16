@@ -13,7 +13,12 @@ import {
   isRainyWeather,
   performFloodAnalysis,
 } from '../floodRisk/analysis'
-import type { FloodRiskSummary, RiskPointCollection, RiverFeatureCollection } from '../floodRisk/types'
+import type {
+  FloodRiskSummary,
+  RiskPointCollection,
+  RiskPointFeature,
+  RiverFeatureCollection,
+} from '../floodRisk/types'
 
 type FloodRiskLayerProps = {
   mapRef: MutableRefObject<OLMap | null>
@@ -74,15 +79,20 @@ const FloodRiskLayer: React.FC<FloodRiskLayerProps> = ({
     const pointLayer = new VectorLayer({
       source: pointSource,
       style: feature => {
-        const riskLevel = String(feature.get('riskLevel') || 'medium')
+        const riskLevel = String(feature.get('riskLevel') || 'normal')
         const pulse = floodLevelRef.current
         const isHigh = riskLevel === 'high'
+        const isMedium = riskLevel === 'medium'
 
         return new Style({
           image: new CircleStyle({
-            radius: isHigh ? 5 + pulse * 2.5 : 4 + pulse * 1.5,
+            radius: isHigh ? 5 + pulse * 2.5 : isMedium ? 4.5 + pulse * 1.5 : 4,
             fill: new Fill({
-              color: isHigh ? 'rgba(255, 79, 79, 0.9)' : 'rgba(255, 168, 76, 0.88)',
+              color: isHigh
+                ? 'rgba(255, 79, 79, 0.9)'
+                : isMedium
+                  ? 'rgba(255, 168, 76, 0.88)'
+                  : 'rgba(86, 199, 255, 0.82)',
             }),
             stroke: new Stroke({
               color: 'rgba(255,255,255,0.95)',
@@ -132,7 +142,7 @@ const FloodRiskLayer: React.FC<FloodRiskLayerProps> = ({
       bufferLayerRef.current = null
       pointLayerRef.current = null
     }
-  }, [mapRef])
+  }, [mapRef, activeLayers])
 
   useEffect(() => {
     if (bufferLayerRef.current) {
@@ -144,17 +154,44 @@ const FloodRiskLayer: React.FC<FloodRiskLayerProps> = ({
   }, [activeLayers])
 
   useEffect(() => {
+    const pointSource = pointLayerRef.current?.getSource()
+    const riskPointData = riskPointsDataRef.current
+    if (!pointSource || !dataReady) return
+
+    const allRiskPointFeatures = geoJsonFormat.readFeatures(
+      {
+        type: 'FeatureCollection',
+        features: riskPointData.features.map((feature: RiskPointFeature) => ({
+          ...feature,
+          properties: {
+            ...feature.properties,
+            riskLevel: 'normal',
+          },
+        })),
+      },
+      { featureProjection: 'EPSG:3857' },
+    )
+
+    allRiskPointFeatures.forEach(feature => {
+      feature.set('layerType', 'risk-point')
+      feature.set('name', String(feature.get('name') || '风险点'))
+    })
+
+    pointSource.clear()
+    pointSource.addFeatures(allRiskPointFeatures)
+  }, [dataReady])
+
+  useEffect(() => {
     const bufferSource = bufferLayerRef.current?.getSource()
     const pointSource = pointLayerRef.current?.getSource()
     const riverData = riversDataRef.current
     const riskPointData = riskPointsDataRef.current
     const weatherText = weatherNow?.weather || ''
 
-    if (!bufferSource || !pointSource) return
+    if (!bufferSource || !pointSource || !dataReady) return
 
     if (!isRainyWeather(weatherText) || !riverData) {
       bufferSource.clear()
-      pointSource.clear()
       onRiskSummaryChange(null)
       return
     }
@@ -162,7 +199,6 @@ const FloodRiskLayer: React.FC<FloodRiskLayerProps> = ({
     const analysisResult = performFloodAnalysis(riverData, riskPointData, weatherText)
     if (!analysisResult) {
       bufferSource.clear()
-      pointSource.clear()
       onRiskSummaryChange(null)
       return
     }
@@ -189,27 +225,26 @@ const FloodRiskLayer: React.FC<FloodRiskLayerProps> = ({
       },
       { featureProjection: 'EPSG:3857' },
     )
+
     bufferFeatures.forEach(feature => {
       feature.set('layerType', 'flood-buffer')
       feature.set('name', '洪涝警戒区')
     })
 
-    const riskPointFeatures = geoJsonFormat.readFeatures(
-      {
-        type: 'FeatureCollection',
-        features: analysisResult.affectedPoints,
-      },
-      { featureProjection: 'EPSG:3857' },
+    const affectedFeatureMap = new Map(
+      analysisResult.affectedPoints.map(feature => [
+        `${feature.properties?.name || ''}-${feature.properties?.type || ''}`,
+        feature.properties?.riskLevel || 'medium',
+      ]),
     )
-    riskPointFeatures.forEach(feature => {
-      feature.set('layerType', 'risk-point')
-      feature.set('name', String(feature.get('name') || '风险点'))
+
+    pointSource.getFeatures().forEach(feature => {
+      const key = `${feature.get('name') || ''}-${feature.get('type') || ''}`
+      feature.set('riskLevel', affectedFeatureMap.get(key) || 'normal')
     })
 
     bufferSource.clear()
-    pointSource.clear()
     bufferSource.addFeatures(bufferFeatures)
-    pointSource.addFeatures(riskPointFeatures)
     onRiskSummaryChange(buildFloodRiskSummary(analysisResult, weatherText))
   }, [dataReady, onRiskSummaryChange, weatherNow])
 

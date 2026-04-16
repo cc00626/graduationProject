@@ -16,11 +16,16 @@ import { getWeatherNow, getWindHistory, getWindPoll } from '@/services/wind'
 import type { WeatherNowItem, WeatherNowResponse, WindHistoryItem } from '@/services/wind'
 import style from './index.module.scss'
 import DistrictInsightPanel from './DistrictInsightPanel'
+import FloodRiskLayer from './FloodRiskLayer'
 import LayerManager from './LayerManager'
 import WindDistributionChart from './WindChart'
 import WindArrowLayer from './WindArrowLayer'
 import WindTrendChart from './WindQuShi'
-import { createDistrictLayer, createWaterLayer } from './mapLayers'
+import type { FloodRiskSummary } from './floodRisk/types'
+import { createDistrictLayer, createStationLayer, createWaterLayer } from './mapLayers'
+import { DragBox } from 'ol/interaction'
+import { platformModifierKeyOnly } from 'ol/events/condition'
+import { highlightStationStyle } from './mapLayers'
 type WindDistrictData = {
   district: string
   levelCounts: number[]
@@ -48,7 +53,11 @@ const MapComponent = () => {
   const [weatherNow, setWeatherNow] = useState<WeatherNowItem | null>(null)
   const [weatherMeta, setWeatherMeta] = useState<WeatherNowResponse | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(false)
+  const [floodRiskSummary, setFloodRiskSummary] = useState<FloodRiskSummary | null>(null)
   const [activeLayers, setActiveLayers] = useState<string[]>([LAYERS.DISTRICT])
+  const stationLayerRef = useRef<VectorLayer<VectorSource> | null>(null)
+  const [selectedStations, setSelectedStations] = useState<any[]>([]) // 存储框选到的站点信息
+  const highlightSourceRef = useRef(new VectorSource()) // 高亮图层的数据源
   // const getGzStyle = (feature: any) => {
   //   const districtName = feature.get('name')
   //   const data = windData.current
@@ -204,14 +213,21 @@ const MapComponent = () => {
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-
+    const highlightLayer = new VectorLayer({
+      source: highlightSourceRef.current,
+      style: highlightStationStyle, // 使用上面定义的样式
+      zIndex: 1000,
+    })
+    map.addLayer(highlightLayer)
     const vectorLayer = createDistrictLayer(getGzStyle)
     const waterLayer = createWaterLayer()
+    const stationLayer = createStationLayer() //气象站点图层
     const vectorSource = vectorLayer.getSource()
     if (!vectorSource) return
-
+    stationLayerRef.current = stationLayer
     map.addLayer(vectorLayer)
     map.addLayer(waterLayer)
+    map.addLayer(stationLayer)
     vectorLayerRef.current = vectorLayer
 
     const listener = () => {
@@ -233,6 +249,8 @@ const MapComponent = () => {
     return () => {
       map.removeLayer(waterLayer)
       map.removeLayer(vectorLayer)
+      map.removeLayer(stationLayer)
+      map.removeLayer(highlightLayer)
     }
   }, [getGzStyle])
 
@@ -377,6 +395,55 @@ const MapComponent = () => {
       setActiveLayers(prev => (isVisible ? prev.filter(id => id !== layerId) : [...prev, layerId]))
     }
   }, [])
+
+  //框选查询
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    const dragBox = new DragBox({
+      condition: platformModifierKeyOnly,
+    })
+
+    map.addInteraction(dragBox)
+
+    dragBox.on('boxend', () => {
+      const extent = dragBox.getGeometry().getExtent()
+      const stationsSource = stationLayerRef.current?.getSource()
+      const highlightSource = highlightSourceRef.current
+
+      // ✨ 清除上一次的高亮
+      highlightSource.clear()
+
+      if (stationsSource) {
+        const selected: any[] = []
+
+        stationsSource.forEachFeatureIntersectingExtent(extent, feature => {
+          const cloneFeature = feature.clone()
+          highlightSource.addFeature(cloneFeature)
+          const properties = feature.getProperties()
+
+          selected.push({
+            ...properties, // 展开所有属性 (id, name, wind_speed, rainfall, status 等)
+            geometry: feature.getGeometry(), // 存入几何体以便后续做地图联动
+          })
+        })
+
+        setSelectedStations(selected)
+        console.log('选中的站点：', selected)
+      }
+    })
+
+    dragBox.on('boxstart', () => {
+      highlightSourceRef.current.clear() // 开始新框选时清除高亮
+      setSelectedStations([])
+    })
+
+    return () => {
+      map.removeInteraction(dragBox)
+    }
+  }, [])
+
   return (
     <>
       <div className={style.page}>
@@ -397,37 +464,88 @@ const MapComponent = () => {
         </div>
       </div>
       <WindArrowLayer mapRef={mapRef} refreshKey={arrowRefreshKey} />
-      <button
-        style={{ position: 'absolute', right: '30px', top: '50px', color: 'white' }}
-        onClick={() => handleGetWindData()}
-      >
-        查看风速数据
-      </button>
-      <button
-        style={{ position: 'absolute', right: '160px', top: '50px', color: 'white' }}
-        onClick={() => handleGetWeatherData()}
-      >
-        查看趋势数据
-      </button>
+      <FloodRiskLayer
+        mapRef={mapRef}
+        activeLayers={activeLayers}
+        weatherNow={weatherNow}
+        onRiskSummaryChange={setFloodRiskSummary}
+      />
       <button
         style={{ position: 'absolute', right: '290px', top: '50px', color: 'white' }}
         onClick={() => setArrowRefreshKey(prev => prev + 1)}
       >
         刷新风向
       </button>
-      <div className={style.chartContainer}>
-        <WindDistributionChart data={chartData} />
-      </div>
-      <div className={style.trendContainer}>
-        <WindTrendChart data={trendData} />
-      </div>
+      {selectedStations.length > 0 ? (
+        <div className={style.selectionPanel}>
+          <div className={style.panelHeader}>
+            <h3>框选站点详情</h3>
+            <span className={style.countTag}>{selectedStations.length} 个站点</span>
+          </div>
+
+          <div className={style.stationList}>
+            {selectedStations.map((station, index) => (
+              <div key={station.id || index} className={style.stationCard}>
+                <div className={style.stationName}>
+                  {station.name || '未知站点'}
+                  <span>{station.district}</span>
+                </div>
+
+                <div className={style.dataGrid}>
+                  <div className={style.dataItem}>
+                    <span className={style.label}>实时风速</span>
+                    <span className={style.value}>
+                      {station.wind_speed ?? '--'}
+                      <span className={style.unit}>m/s</span>
+                    </span>
+                  </div>
+                  <div className={style.dataItem}>
+                    <span className={style.label}>实时雨量</span>
+                    <span className={style.value}>
+                      {station.rainfall ?? '--'}
+                      <span className={style.unit}>mm</span>
+                    </span>
+                  </div>
+                  <div className={style.dataItem}>
+                    <span className={style.label}>当前气温</span>
+                    <span className={style.value}>
+                      {station.temperature ?? '--'}
+                      <span className={style.unit}>°C</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className={style.panelFooter}>
+            <button
+              onClick={() => {
+                setSelectedStations([])
+                highlightSourceRef.current.clear()
+              }}
+            >
+              清除框选
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <div className={style.chartContainer}>
+            <WindDistributionChart data={chartData} />
+          </div>
+          <div className={style.trendContainer}>
+            <WindTrendChart data={trendData} />
+          </div>
+        </div>
+      )}
       <DistrictInsightPanel
         districtName={selectedDistrict}
         windDetail={activeDetail}
         weatherNow={weatherNow}
         weatherMeta={weatherMeta}
         weatherLoading={weatherLoading}
-        floodRiskSummary={null}
+        floodRiskSummary={floodRiskSummary}
       />
     </>
   )
