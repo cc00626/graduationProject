@@ -34,6 +34,7 @@ import { highlightStationStyle } from './mapLayers'
 import TimeMachine from './TimeMachine'
 import type ImageLayer from 'ol/layer/Image'
 import Static from 'ol/source/ImageStatic'
+import { color } from 'echarts'
 type WindDistrictData = {
   district: string
   levelCounts: number[]
@@ -70,6 +71,7 @@ const MapComponent = () => {
   const [activeWeatherType, setActiveWeatherType] = useState<'rain_standard' | 'temp' | 'wind'>(
     'rain_standard',
   )
+  const [hasNotified, setHasNotified] = useState(false)
   // const getGzStyle = (feature: any) => {
   //   const districtName = feature.get('name')
   //   const data = windData.current
@@ -231,9 +233,10 @@ const MapComponent = () => {
       zIndex: 1000,
     })
     map.addLayer(highlightLayer)
+    const stationLayer = createStationLayer() //气象站点图层
     const vectorLayer = createDistrictLayer(getGzStyle)
     const waterLayer = createWaterLayer()
-    const stationLayer = createStationLayer() //气象站点图层
+
     const vectorSource = vectorLayer.getSource()
     if (!vectorSource) return
     stationLayerRef.current = stationLayer
@@ -584,7 +587,7 @@ const MapComponent = () => {
                         {hasNotified ? '✅ 预警已下发' : '🚨 发布预警并分析周边'}
                       </button>
                     ) : (
-                      <button className={style.normalBtn}>查看站点详情</button>
+                      <button style={{ color: 'white' }}>查看站点详情</button>
                     )}
                   </div>
                 </div>

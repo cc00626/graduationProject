@@ -13,7 +13,7 @@ const AppLayout = () => {
 
   const navItems = useMemo(
     () => [
-      { path: '/dashboard', label: '监控总览', icon: <AppstoreOutlined /> },
+      // { path: '/dashboard', label: '监控总览', icon: <AppstoreOutlined /> },
       { path: '/map', label: '灾害分布', icon: <GlobalOutlined /> },
       { path: '/history', label: '历史数据', icon: <GlobalOutlined /> },
     ],

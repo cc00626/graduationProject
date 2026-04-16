@@ -242,3 +242,48 @@ $panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
     }
   }
 }
+/* 警报按钮 - 具有呼吸灯效果 */
+.alertBtn {
+  width: 100%;
+  padding: 8px;
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+  transition: all 0.3s;
+  animation: breathe 2s infinite; /* 呼吸灯动画 */
+}
+
+.alertBtn:hover {
+  background: #ff7875;
+}
+
+/* 已通知状态 */
+.btnDisabled {
+  background: #333 !important;
+  color: #888;
+  cursor: not-allowed;
+  animation: none;
+}
+
+/* 呼吸动画：提醒管理员点击 */
+@keyframes breathe {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 77, 79, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
+  }
+}
+
+.actionSection {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 8px;
+  padding-top: 4px;
+}
