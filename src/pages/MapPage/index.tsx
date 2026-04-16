@@ -22,10 +22,18 @@ import WindDistributionChart from './WindChart'
 import WindArrowLayer from './WindArrowLayer'
 import WindTrendChart from './WindQuShi'
 import type { FloodRiskSummary } from './floodRisk/types'
-import { createDistrictLayer, createStationLayer, createWaterLayer } from './mapLayers'
+import {
+  createDistrictLayer,
+  createStationLayer,
+  createWaterLayer,
+  createWeatherImageLayer,
+} from './mapLayers'
 import { DragBox } from 'ol/interaction'
 import { platformModifierKeyOnly } from 'ol/events/condition'
 import { highlightStationStyle } from './mapLayers'
+import TimeMachine from './TimeMachine'
+import type ImageLayer from 'ol/layer/Image'
+import Static from 'ol/source/ImageStatic'
 type WindDistrictData = {
   district: string
   levelCounts: number[]
@@ -58,6 +66,10 @@ const MapComponent = () => {
   const stationLayerRef = useRef<VectorLayer<VectorSource> | null>(null)
   const [selectedStations, setSelectedStations] = useState<any[]>([]) // 存储框选到的站点信息
   const highlightSourceRef = useRef(new VectorSource()) // 高亮图层的数据源
+  const weatherImageLayerRef = useRef<ImageLayer<Static> | null>(null)
+  const [activeWeatherType, setActiveWeatherType] = useState<'rain_standard' | 'temp' | 'wind'>(
+    'rain_standard',
+  )
   // const getGzStyle = (feature: any) => {
   //   const districtName = feature.get('name')
   //   const data = windData.current
@@ -225,9 +237,12 @@ const MapComponent = () => {
     const vectorSource = vectorLayer.getSource()
     if (!vectorSource) return
     stationLayerRef.current = stationLayer
+    const weatherImageLayer = createWeatherImageLayer('wind', 0)
+    weatherImageLayerRef.current = weatherImageLayer
     map.addLayer(vectorLayer)
     map.addLayer(waterLayer)
     map.addLayer(stationLayer)
+    map.addLayer(weatherImageLayer)
     vectorLayerRef.current = vectorLayer
 
     const listener = () => {
@@ -444,6 +459,31 @@ const MapComponent = () => {
     }
   }, [])
 
+  //时间轴
+  // 在你的地图主页面中
+  const onTimeChange = useCallback(
+    (hour: number) => {
+      const weatherLayer = weatherImageLayerRef.current
+      if (!weatherLayer) return
+
+      // 创建新的 Source
+      const newSource = new Static({
+        url: `/layers/standard_rain/${activeWeatherType}_${hour}.png`, // 使用状态中的类型
+        imageExtent: [112.9, 22.5, 114.1, 24.0],
+        projection: 'EPSG:4326',
+      })
+
+      weatherLayer.setSource(newSource)
+
+      // 同时联动站点数据 (如果你之前的 history 文件夹里有对应的 station_x.json)
+      const stationSource = stationLayerRef.current?.getSource()
+      if (stationSource) {
+        stationSource.setUrl(`/data/history/station_${hour}.json`)
+        stationSource.refresh()
+      }
+    },
+    [activeWeatherType],
+  )
   return (
     <>
       <div className={style.page}>
@@ -476,6 +516,7 @@ const MapComponent = () => {
       >
         刷新风向
       </button>
+      {/* 右侧展示 */}
       {selectedStations.length > 0 ? (
         <div className={style.selectionPanel}>
           <div className={style.panelHeader}>
@@ -533,16 +574,19 @@ const MapComponent = () => {
                     </div>
                   </div>
 
-                  {/* 警示描述文案 */}
-                  {(isDanger || isWarning) && (
-                    <div className={style.alertMsg}>
-                      {isDanger
-                        ? '🚨 检测到极端气象，建议立即采取防御措施。'
-                        : '⚠️ 气象数值异常，请持续关注实时监测。'}
-                    </div>
-                  )}
-
-                  <div className={style.updateTime}>更新于: {station.update_time || '--'}</div>
+                  <div className={style.actionSection}>
+                    {isDanger || isWarning ? (
+                      <button
+                        className={`${style.alertBtn} ${hasNotified ? style.btnDisabled : ''}`}
+                        disabled={true}
+                        // onClick={() => handleAlertAndBuffer(station)}
+                      >
+                        {hasNotified ? '✅ 预警已下发' : '🚨 发布预警并分析周边'}
+                      </button>
+                    ) : (
+                      <button className={style.normalBtn}>查看站点详情</button>
+                    )}
+                  </div>
                 </div>
               )
             })}
@@ -577,6 +621,8 @@ const MapComponent = () => {
         weatherLoading={weatherLoading}
         floodRiskSummary={floodRiskSummary}
       />
+      {/* 时间轴组件 */}
+      <TimeMachine onTimeChange={onTimeChange} />
     </>
   )
 }

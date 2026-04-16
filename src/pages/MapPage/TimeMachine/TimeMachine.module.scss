@@ -1,0 +1,67 @@
+.timeMachineWrapper {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  z-index: 1000;
+
+  .controlPanel {
+    background: rgba(13, 27, 45, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    border-radius: 50px;
+    padding: 10px 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+
+    .playBtn {
+      background: #00f2ff;
+      border: none;
+      color: #000;
+      &:hover {
+        background: #40f9ff;
+        transform: scale(1.1);
+      }
+    }
+
+    .sliderContent {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .timeInfo {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: -5px;
+
+        .dateText {
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 12px;
+        }
+        .timeText {
+          color: #00f2ff;
+          font-weight: bold;
+          font-family: 'DIN';
+        }
+      }
+    }
+  }
+}
+
+// 修改 Ant Design Slider 样式
+:global(.ant-slider-rail) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+:global(.ant-slider-track) {
+  background-color: #00f2ff !important;
+}
+:global(.ant-slider-handle::after) {
+  box-shadow: 0 0 10px #00f2ff !important;
+}
+:global(.ant-slider-mark-text) {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 10px;
+}

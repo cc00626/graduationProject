@@ -4,9 +4,9 @@ import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style } from 'ol/style'
 import { LAYERS } from '@/constant'
 import { Circle, Text } from 'ol/style'
-import Feature from 'ol/Feature'
-import Point from 'ol/geom/Point'
-import { fromLonLat } from 'ol/proj'
+import CircleStyle from 'ol/style/Circle'
+import ImageLayer from 'ol/layer/Image'
+import Static from 'ol/source/ImageStatic'
 const geoJsonFormat = new GeoJSON({
   dataProjection: 'EPSG:4326',
   featureProjection: 'EPSG:3857',
@@ -133,4 +133,23 @@ export const highlightStationStyle = (feature: any) => {
     }),
     zIndex: 1000, // 确保在最顶层
   })
+}
+
+//气象图
+export const createWeatherImageLayer = (type = 'wind', hour = 0) => {
+  const layer = new ImageLayer({
+    opacity: 0.7,
+    zIndex: 15, // 位于行政区划(10)之上，站点图标(25)之下
+    source: new Static({
+      // 路径对应 Python 脚本生成的地址
+      url: `/layers/standard_rain/${type}_${hour}.png`,
+      // 必须与 Python 脚本中的 EXTENT 严格一致 [minLon, minLat, maxLon, maxLat]
+      // 注意：OpenLayers 的 imageExtent 顺序通常是 [minX, minY, maxX, maxY]
+      imageExtent: [112.9, 22.5, 114.1, 24.0],
+      projection: 'EPSG:4326', // 图片是基于经纬度生成的
+    }),
+  })
+
+  layer.set('id', 'WEATHER_IMAGE_LAYER')
+  return layer
 }

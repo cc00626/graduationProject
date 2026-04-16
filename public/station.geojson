@@ -56,6 +56,104 @@
         "update_time": "2026-04-16 18:00"
       },
       "geometry": { "type": "Point", "coordinates": [113.82, 23.28] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-BY-555",
+        "name": "白云机场气象站",
+        "district": "白云区",
+        "wind_speed": 31.2,
+        "rainfall": 12.4,
+        "temperature": 25.8,
+        "status": "danger",
+        "update_time": "2026-04-16 18:00"
+      },
+      "geometry": { "type": "Point", "coordinates": [113.27, 23.39] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-LW-444",
+        "name": "荔湾芳村监测点",
+        "district": "荔湾区",
+        "wind_speed": 5.4,
+        "rainfall": 112.8,
+        "temperature": 24.2,
+        "status": "danger",
+        "update_time": "2026-04-16 18:00"
+      },
+      "geometry": { "type": "Point", "coordinates": [113.23, 23.1] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-HP-333",
+        "name": "黄埔科学城站",
+        "district": "黄埔区",
+        "wind_speed": 14.8,
+        "rainfall": 5.2,
+        "temperature": 39.4,
+        "status": "warning",
+        "update_time": "2026-04-16 18:00"
+      },
+      "geometry": { "type": "Point", "coordinates": [113.45, 23.17] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-TH-222",
+        "name": "天河珠江新城站",
+        "district": "天河区",
+        "wind_speed": 19.5,
+        "rainfall": 48.0,
+        "temperature": 26.8,
+        "status": "warning",
+        "update_time": "2026-04-16 18:00"
+      },
+      "geometry": { "type": "Point", "coordinates": [113.32, 23.12] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-YX-111",
+        "name": "越秀公园监测站",
+        "district": "越秀区",
+        "wind_speed": 8.2,
+        "rainfall": 22.5,
+        "temperature": 27.1,
+        "status": "normal",
+        "update_time": "2026-04-16 18:00"
+      },
+      "geometry": { "type": "Point", "coordinates": [113.26, 23.14] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-HZ-000",
+        "name": "海珠琶洲站",
+        "district": "海珠区",
+        "wind_speed": 26.7,
+        "rainfall": 15.8,
+        "temperature": 25.5,
+        "status": "danger",
+        "update_time": "2026-04-16 18:00"
+      },
+      "geometry": { "type": "Point", "coordinates": [113.36, 23.1] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-HD-123",
+        "name": "花都芙蓉嶂站",
+        "district": "花都区",
+        "wind_speed": 11.2,
+        "rainfall": 67.4,
+        "temperature": 23.9,
+        "status": "warning",
+        "update_time": "2026-04-16 18:00"
+      },
+      "geometry": { "type": "Point", "coordinates": [113.22, 23.45] }
     }
   ]
 }

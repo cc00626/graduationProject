@@ -1,0 +1,85 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-NS-01",
+        "name": "南沙港站",
+        "district": "南沙区",
+        "wind_speed": 44.7,
+        "rainfall": 99,
+        "temperature": "25.7",
+        "status": "danger",
+        "update_time": "2026-04-16 23:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.415,
+          22.984
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-CH-02",
+        "name": "从化站",
+        "district": "从化区",
+        "wind_speed": 44.7,
+        "rainfall": 97.7,
+        "temperature": "25.7",
+        "status": "danger",
+        "update_time": "2026-04-16 23:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.465,
+          23.724
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-PY-03",
+        "name": "番禺站",
+        "district": "番禺区",
+        "wind_speed": 46,
+        "rainfall": 99.7,
+        "temperature": "25.7",
+        "status": "danger",
+        "update_time": "2026-04-16 23:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.265,
+          23.114
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-BY-04",
+        "name": "白云站",
+        "district": "白云区",
+        "wind_speed": 46.1,
+        "rainfall": 97.2,
+        "temperature": "25.7",
+        "status": "danger",
+        "update_time": "2026-04-16 23:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.155,
+          23.334
+        ]
+      }
+    }
+  ]
+}
