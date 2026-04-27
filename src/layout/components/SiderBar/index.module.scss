@@ -1,0 +1,31 @@
+.logoArea {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.brandBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.logoText {
+  margin-left: 8px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}

@@ -1,40 +1,63 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { Layout, Menu } from 'antd'
-import { DesktopOutlined, FileTextOutlined, GlobalOutlined, AlertOutlined } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
+import type { MenuProps } from 'antd'
+import styles from './index.module.scss'
+
 const { Sider } = Layout
-const SiderBar = () => {
-  const [collapsed, setCollapsed] = useState(false)
-  const navigate = useNavigate()
-  //菜单栏
-  const menuItems = [
-    { key: '/dashboard', icon: <DesktopOutlined />, label: '监测仪表盘' },
-    { key: '/map', icon: <GlobalOutlined />, label: '灾害分布图' },
-    { key: '/alerts', icon: <AlertOutlined />, label: '预警信息管理' },
-    { key: '/reports', icon: <FileTextOutlined />, label: '统计报表' },
-  ]
+
+type SidebarItem = NonNullable<MenuProps['items']>[number]
+
+type SiderBarProps = {
+  items: SidebarItem[]
+  selectedKeys?: string[]
+  collapsed?: boolean
+  defaultCollapsed?: boolean
+  title?: ReactNode
+  badge?: ReactNode
+  menuTheme?: 'light' | 'dark'
+  onCollapse?: (collapsed: boolean) => void
+  onMenuClick?: MenuProps['onClick']
+}
+
+const SiderBar = ({
+  items,
+  selectedKeys = [],
+  collapsed,
+  defaultCollapsed = false,
+  title = '监测平台',
+  badge = '气象',
+  menuTheme = 'dark',
+  onCollapse,
+  onMenuClick,
+}: SiderBarProps) => {
+  const [innerCollapsed, setInnerCollapsed] = useState(defaultCollapsed)
+  const isControlled = typeof collapsed === 'boolean'
+  const mergedCollapsed = isControlled ? collapsed : innerCollapsed
+
+  const handleCollapse = (nextCollapsed: boolean) => {
+    if (!isControlled) {
+      setInnerCollapsed(nextCollapsed)
+    }
+    onCollapse?.(nextCollapsed)
+  }
+
   return (
-    <Sider collapsible collapsed={collapsed} onCollapse={value => setCollapsed(value)}>
-      <div
-        style={{
-          height: 32,
-          margin: 16,
-          background: 'rgba(255,255,255,.2)',
-          color: '#fff',
-          textAlign: 'center',
-          lineHeight: '32px',
-        }}
-      >
-        {collapsed ? 'GIS' : '广州气象监测'}
+    <Sider collapsible collapsed={mergedCollapsed} onCollapse={handleCollapse}>
+      <div className={styles.logoArea}>
+        <span className={styles.brandBadge}>{badge}</span>
+        {!mergedCollapsed && <span className={styles.logoText}>{title}</span>}
       </div>
       <Menu
-        theme="dark"
-        defaultSelectedKeys={['/dashboard']}
         mode="inline"
-        items={menuItems}
-        onClick={({ key }) => navigate(key)}
+        theme={menuTheme}
+        items={items}
+        selectedKeys={selectedKeys}
+        onClick={onMenuClick}
       />
     </Sider>
   )
 }
+
+export type { SiderBarProps, SidebarItem }
 export default SiderBar

@@ -1,79 +1,87 @@
-﻿import { useMemo } from 'react'
-import { AppstoreOutlined, GlobalOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
-import { Avatar, Button, message } from 'antd'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { UserLogout } from '@/services/user'
-import { clearAuth } from '@/utils/auth'
-import style from './index.module.scss'
+﻿import { useState } from 'react'
+import { Layout, Menu, theme, Avatar } from 'antd'
+import { AppstoreOutlined, GlobalOutlined, UserOutlined } from '@ant-design/icons'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import SiderBar from './components/SiderBar'
+const { Header, Content } = Layout
 
 const AppLayout = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const [messageApi, contextHolder] = message.useMessage()
+  const [collapsed, setCollapsed] = useState(false)
 
-  const navItems = useMemo(
-    () => [
-      // { path: '/dashboard', label: '监控总览', icon: <AppstoreOutlined /> },
-      { path: '/map', label: '灾害分布', icon: <GlobalOutlined /> },
-      { path: '/history', label: '历史数据', icon: <GlobalOutlined /> },
-    ],
-    [],
-  )
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken()
 
-  const handleLogout = async () => {
-    try {
-      await UserLogout()
-    } catch (error) {
-      console.error('logout request failed:', error)
-    } finally {
-      clearAuth()
-      messageApi.success('已安全退出登录')
-      navigate('/login')
-    }
-  }
+  // 菜单配置
+  const menuItems = [
+    {
+      key: '/monitor',
+      icon: <GlobalOutlined />,
+      label: '实时态势', // 一级菜单：体现业务大类
+      children: [
+        {
+          key: '/monitor/rain',
+          label: '降水监测', // 对应底层：色斑图/热力图
+        },
+        {
+          key: '/monitor/typhoon',
+          label: '台风路径', // 对应中层：矢量点线
+        },
+        {
+          key: '/monitor/warning',
+          label: '预警发布', // 对应顶层：闪烁图标
+        },
+      ],
+    },
+    {
+      key: '/history',
+      icon: <AppstoreOutlined />,
+      label: '历史回溯',
+    },
+    {
+      key: '/setting',
+      icon: <UserOutlined />,
+      label: '系统配置',
+    },
+  ]
 
   return (
-    <div className={style.layoutShell}>
-      {contextHolder}
-      <header className={style.topBar}>
-        <div className={style.brandWrap}>
-          <span className={style.brandBadge}>气象</span>
-          <h1 className={style.brandTitle}>气象灾害综合风险监测平台</h1>
-        </div>
+    <Layout style={{ minHeight: '100vh' }}>
+      {/* 侧边栏 */}
+      <SiderBar
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+        items={menuItems}
+        onMenuClick={item => {
+          navigate(item.key)
+        }}
+      ></SiderBar>
 
-        <nav className={style.navWrap}>
-          {navItems.map(item => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `${style.navItem} ${isActive || location.pathname === item.path ? style.navItemActive : ''}`
-              }
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
+      <Layout>
+        {/* 顶部 Header */}
+        <Header style={{ background: colorBgContainer, padding: '0 24px', textAlign: 'right' }}>
+          <Avatar icon={<UserOutlined />} />
+          <span style={{ marginLeft: 8 }}>管理员</span>
+        </Header>
 
-        <div className={style.userWrap}>
-          <Avatar icon={<UserOutlined />} className={style.userAvatar} />
-          <span className={style.userText}>管理员</span>
-          <Button
-            type="text"
-            icon={<LogoutOutlined />}
-            className={style.logoutBtn}
-            onClick={handleLogout}
+        {/* 页面内容容器 */}
+        <Content style={{ margin: '16px' }}>
+          <div
+            style={{
+              padding: 24,
+              minHeight: '100%',
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
           >
-            退出
-          </Button>
-        </div>
-      </header>
-
-      <main className={style.pageBody}>
-        <Outlet />
-      </main>
-    </div>
+            {/* 嵌套路由出口 */}
+            <Outlet />
+          </div>
+        </Content>
+      </Layout>
+    </Layout>
   )
 }
 

@@ -1,0 +1,38 @@
+.container {
+  padding: 20px;
+  background: #001529; // 深色底色
+  min-height: calc(100vh - 64px);
+  color: #fff;
+
+  :global {
+    .ant-card {
+      background: rgba(16, 32, 56, 0.8); // 半透明卡片
+      border: 1px solid #1a3a63;
+      color: #fff;
+      .ant-card-head {
+        color: #fff;
+        border-bottom: 1px solid #1a3a63;
+      }
+    }
+    .ant-descriptions-item-label {
+      color: #aaa;
+    }
+    .ant-descriptions-item-content {
+      color: #fff;
+    }
+  }
+}
+
+.dangerValue {
+  color: #ff4d4f;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.docPreview {
+  background: #fff; // 文档预览区域建议用白色，模拟纸张
+  color: #333;
+  padding: 15px;
+  border-radius: 4px;
+  min-height: 200px;
+}

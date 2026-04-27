@@ -34,7 +34,7 @@ import { highlightStationStyle } from './mapLayers'
 import TimeMachine from './TimeMachine'
 import type ImageLayer from 'ol/layer/Image'
 import Static from 'ol/source/ImageStatic'
-import { color } from 'echarts'
+import { useNavigate } from 'react-router-dom'
 type WindDistrictData = {
   district: string
   levelCounts: number[]
@@ -72,6 +72,7 @@ const MapComponent = () => {
     'rain_standard',
   )
   const [hasNotified, setHasNotified] = useState(false)
+  const navigate = useNavigate()
   // const getGzStyle = (feature: any) => {
   //   const districtName = feature.get('name')
   //   const data = windData.current
@@ -487,6 +488,16 @@ const MapComponent = () => {
     },
     [activeWeatherType],
   )
+
+  const handleAlertAndAnalysis = (station: any) => {
+    console.log('123')
+    // 1. 执行预警逻辑...
+
+    // 2. 跳转并传递站点 ID 或坐标
+    navigate(`/emergency-detail/${station.id}`, {
+      state: { center: [station.longitude, station.latitude], name: station.name },
+    })
+  }
   return (
     <>
       <div className={style.page}>
@@ -581,8 +592,8 @@ const MapComponent = () => {
                     {isDanger || isWarning ? (
                       <button
                         className={`${style.alertBtn} ${hasNotified ? style.btnDisabled : ''}`}
-                        disabled={true}
-                        // onClick={() => handleAlertAndBuffer(station)}
+                        // disabled={true}
+                        onClick={() => handleAlertAndAnalysis(station)}
                       >
                         {hasNotified ? '✅ 预警已下发' : '🚨 发布预警并分析周边'}
                       </button>

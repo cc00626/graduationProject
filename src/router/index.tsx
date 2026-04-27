@@ -7,7 +7,8 @@ import MapComponent from '@/pages/MapPage/index.tsx'
 import { Navigate } from 'react-router-dom'
 import Layout from '@/layout'
 import { isAuthenticated } from '@/utils/auth'
-
+import EmergencyDetail from '@/pages/EmergencyDetail'
+import RainMonitor from '@/pages/RainMonitor'
 const ProtectedRoute = ({ children }: { children: ReactElement }) => {
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />
@@ -48,16 +49,12 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        index: true,
-        element: <Navigate to="/dashboard" replace />,
+        path: '/monitor/rain',
+        element: <RainMonitor />,
       },
       {
-        path: '/dashboard',
-        element: <DashBoard />,
-      },
-      {
-        path: '/map',
-        element: <MapComponent />,
+        path: '/emergency-detail/:id',
+        element: <EmergencyDetail />,
       },
     ],
   },
