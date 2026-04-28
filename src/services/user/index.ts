@@ -1,17 +1,14 @@
 import request from '@/services/request'
+import type { AuthUser, UserPreferences, UserRole } from '@/utils/auth'
+
 export interface UserData {
   account: string
   password: string
 }
 
-interface UserInfo {
-  id: string
-  account: string
-}
-
-interface RegisterData {
+interface AuthData {
   token: string
-  user: UserInfo
+  user: AuthUser
 }
 
 interface ApiResponse<T> {
@@ -19,18 +16,90 @@ interface ApiResponse<T> {
   message: string
   data: T
 }
-//用户注册接口
+
+export interface ProfilePayload {
+  account: string
+  avatar?: string
+  preferences: UserPreferences
+}
+
+export interface PasswordPayload {
+  oldPassword: string
+  newPassword: string
+}
+
+export interface PermissionItem {
+  code: string
+  name: string
+  type: 'page' | 'button' | string
+  group: string
+}
+
+export interface RoleItem {
+  key: string
+  name: string
+  description?: string
+  rank: number
+  builtin: boolean
+  permissions: string[]
+}
+
 export const UserRegister = (data: UserData) => {
-  // 传入泛型，告诉 TS：返回值的 data 字段符合 RegisterData 结构
-  return request.post<ApiResponse<RegisterData>>('/auth/register', data)
+  return request.post<ApiResponse<AuthData>, UserData>('/auth/register', data)
 }
 
-//用户登录接口
 export const UserRLogin = (data: UserData) => {
-  return request.post<ApiResponse<RegisterData>>('/auth/login', data)
+  return request.post<ApiResponse<AuthData>, UserData>('/auth/login', data)
 }
 
-//鐢ㄦ埛閫€鍑烘帴鍙?
 export const UserLogout = () => {
   return request.post<ApiResponse<null>>('/auth/logout')
+}
+
+export const GetCurrentUser = () => {
+  return request.get<ApiResponse<AuthUser>>('/auth/me')
+}
+
+export const UpdateProfile = (data: ProfilePayload) => {
+  return request.put<ApiResponse<AuthData>, ProfilePayload>('/auth/profile', data)
+}
+
+export const UpdatePassword = (data: PasswordPayload) => {
+  return request.put<ApiResponse<null>, PasswordPayload>('/auth/password', data)
+}
+
+export const GetUsers = () => {
+  return request.get<ApiResponse<AuthUser[]>>('/auth/users')
+}
+
+export const UpdateUserRole = (id: string, role: UserRole) => {
+  return request.patch<ApiResponse<AuthUser>, { role: UserRole }>(`/auth/users/${id}/role`, {
+    role,
+  })
+}
+
+export const GetPermissionCatalog = () => {
+  return request.get<ApiResponse<PermissionItem[]>>('/auth/permissions/catalog')
+}
+
+export const GetRoles = () => {
+  return request.get<ApiResponse<RoleItem[]>>('/auth/roles')
+}
+
+export const CreateRole = (data: Pick<RoleItem, 'name'> & Partial<Pick<RoleItem, 'key' | 'description' | 'permissions'>>) => {
+  return request.post<ApiResponse<RoleItem>, typeof data>('/auth/roles', data)
+}
+
+export const UpdateRole = (key: string, data: Pick<RoleItem, 'name'> & Partial<Pick<RoleItem, 'description'>>) => {
+  return request.patch<ApiResponse<RoleItem>, typeof data>(`/auth/roles/${key}`, data)
+}
+
+export const UpdateRolePermissions = (key: string, permissions: string[]) => {
+  return request.put<ApiResponse<RoleItem>, { permissions: string[] }>(`/auth/roles/${key}/permissions`, {
+    permissions,
+  })
+}
+
+export const DeleteRole = (key: string) => {
+  return request.delete<ApiResponse<null>>(`/auth/roles/${key}`)
 }

@@ -1,27 +1,17 @@
-import { createBrowserRouter } from 'react-router-dom'
-import type { ReactElement } from 'react'
+import { Navigate, createBrowserRouter } from 'react-router-dom'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register/index'
-import DashBoard from '@/pages/DashBoard'
-import MapComponent from '@/pages/MapPage/index.tsx'
-import { Navigate } from 'react-router-dom'
 import Layout from '@/layout'
-import { isAuthenticated } from '@/utils/auth'
 import EmergencyDetail from '@/pages/EmergencyDetail'
 import RainMonitor from '@/pages/RainMonitor'
-const ProtectedRoute = ({ children }: { children: ReactElement }) => {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />
-  }
-  return children
-}
-
-const GuestOnlyRoute = ({ children }: { children: ReactElement }) => {
-  if (isAuthenticated()) {
-    return <Navigate to="/dashboard" replace />
-  }
-  return children
-}
+import TyphoonTrack from '@/pages/TyphoonTrack'
+import WarningList from '@/pages/WarningList'
+import WarningPublish from '@/pages/WarningPublish'
+import SystemSetting from '@/pages/SystemSetting'
+import PermissionManagement from '@/pages/PermissionManagement'
+import RoleManagement from '@/pages/RoleManagement'
+import { getDefaultRoute } from '@/utils/auth'
+import { GuestOnlyRoute, PermissionRoute, ProtectedRoute } from './guards'
 
 const router = createBrowserRouter([
   {
@@ -49,12 +39,76 @@ const router = createBrowserRouter([
     ),
     children: [
       {
+        index: true,
+        element: <Navigate to={getDefaultRoute()} replace />,
+      },
+      {
         path: '/monitor/rain',
-        element: <RainMonitor />,
+        element: (
+          <PermissionRoute permission="page:monitor:rain">
+            <RainMonitor />
+          </PermissionRoute>
+        ),
+      },
+      {
+        path: '/monitor/typhoon',
+        element: (
+          <PermissionRoute permission="page:monitor:typhoon">
+            <TyphoonTrack />
+          </PermissionRoute>
+        ),
+      },
+      {
+        path: '/monitor/warning',
+        element: (
+          <PermissionRoute permission="page:monitor:warning">
+            <WarningPublish />
+          </PermissionRoute>
+        ),
+      },
+      {
+        path: '/monitor/warning-list',
+        element: (
+          <PermissionRoute permission="page:monitor:warning-list">
+            <WarningList />
+          </PermissionRoute>
+        ),
+      },
+      {
+        path: '/warning-publish',
+        element: <WarningPublish />,
+      },
+      {
+        path: '/warning-list',
+        element: <WarningList />,
       },
       {
         path: '/emergency-detail/:id',
         element: <EmergencyDetail />,
+      },
+      {
+        path: '/setting',
+        element: (
+          <PermissionRoute permission="page:setting">
+            <SystemSetting />
+          </PermissionRoute>
+        ),
+      },
+      {
+        path: '/permission',
+        element: (
+          <PermissionRoute permission="page:permission">
+            <PermissionManagement />
+          </PermissionRoute>
+        ),
+      },
+      {
+        path: '/role',
+        element: (
+          <PermissionRoute permission="page:role">
+            <RoleManagement />
+          </PermissionRoute>
+        ),
       },
     ],
   },

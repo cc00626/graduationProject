@@ -42,6 +42,7 @@ interface RequestClient {
   get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
   post<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
   put<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
+  patch<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
   delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
 }
 
@@ -55,10 +56,12 @@ const request: RequestClient = {
   put<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>) {
     return instance.put(url, data, config) as Promise<T>
   },
+  patch<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>) {
+    return instance.patch(url, data, config) as Promise<T>
+  },
   delete<T = unknown>(url: string, config?: AxiosRequestConfig) {
     return instance.delete(url, config) as Promise<T>
   },
 }
 
 export default request
-

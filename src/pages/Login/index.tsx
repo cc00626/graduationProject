@@ -27,7 +27,7 @@ const Login = () => {
     //提示消息
     message.success(res.message)
     saveAuth(res.data.token, res.data.user)
-    navigate('/dashboard')
+    navigate('/')
   }
 
   const onRegister = () => {

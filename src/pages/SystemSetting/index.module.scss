@@ -1,0 +1,79 @@
+.page {
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  margin: 0 0 4px;
+  color: #17233d;
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.card {
+  height: 100%;
+  border-radius: 8px;
+}
+
+.profileTop {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.layerGroup {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.layerGroup :global(.ant-checkbox-wrapper) {
+  margin-inline-start: 0;
+  padding: 8px 10px;
+  background: #f7f9fc;
+  border: 1px solid #e5ebf2;
+  border-radius: 6px;
+}
+
+.footerBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding: 12px 0 0;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0%), #fff 45%);
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profileTop {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .layerGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .footerBar {
+    justify-content: stretch;
+  }
+
+  .footerBar button {
+    width: 100%;
+  }
+}

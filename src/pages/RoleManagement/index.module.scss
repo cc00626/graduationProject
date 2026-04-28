@@ -1,0 +1,29 @@
+.page {
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  margin: 0 0 4px;
+  color: #17233d;
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.table + .table {
+  margin-top: 18px;
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

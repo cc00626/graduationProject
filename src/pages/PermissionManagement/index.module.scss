@@ -1,0 +1,55 @@
+.page {
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  margin: 0 0 4px;
+  color: #17233d;
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.notice {
+  margin-bottom: 16px;
+}
+
+.permissionGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.group {
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5ebf2;
+  border-radius: 8px;
+}
+
+.groupTitle {
+  margin-bottom: 10px;
+  color: #17233d;
+  font-weight: 600;
+}
+
+.group :global(.ant-checkbox-wrapper) {
+  margin-inline-start: 0;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #edf1f7;
+  border-radius: 6px;
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

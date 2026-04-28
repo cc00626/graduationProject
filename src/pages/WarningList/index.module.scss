@@ -1,0 +1,80 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.headerCard,
+.tableCard {
+  border-radius: 8px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  margin: 0 0 4px;
+  color: #17233d;
+  font-size: 20px;
+}
+
+.header p {
+  margin: 0;
+  color: #65758b;
+}
+
+.filters {
+  row-gap: 12px;
+}
+
+.filters :global(.ant-form-item) {
+  margin-bottom: 0;
+}
+
+.filters :global(.ant-input-affix-wrapper) {
+  width: 240px;
+}
+
+.filters :global(.ant-select) {
+  width: 132px;
+}
+
+.editorForm {
+  padding-top: 8px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .filters :global(.ant-input-affix-wrapper),
+  .filters :global(.ant-select) {
+    width: 100%;
+  }
+}
