@@ -7,6 +7,7 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragOverEvent,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -20,7 +21,6 @@ import {
   Alert,
   Button,
   Card,
-  Descriptions,
   Form,
   Input,
   Result,
@@ -31,9 +31,17 @@ import {
   Tag,
   message,
 } from 'antd'
-import { BulbOutlined, FileDoneOutlined, HolderOutlined, SaveOutlined } from '@ant-design/icons'
-import { useLocation } from 'react-router-dom'
+import {
+  BulbOutlined,
+  FileDoneOutlined,
+  HolderOutlined,
+  RadarChartOutlined,
+  SaveOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { BufferPoiItem } from '@/services/rain'
+import { generateWarningDraft } from '@/services/ai'
 import { getTyphoonList, getTyphoonPath } from '@/services/typhoon'
 import {
   createWarning,
@@ -70,6 +78,7 @@ const defaultFormItemOrder: FormItemKey[] = [
   'actions',
 ]
 const formItemOrderStorageKey = 'warning-publish-form-item-order'
+const warningChangedEvent = 'warning-published-updated'
 
 type SortablePanelProps = {
   id: PanelKey
@@ -371,7 +380,7 @@ const SortableFormItem = ({ id, label, order, children }: SortableFormItemProps)
   })
 
   const itemStyle: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     order,
   }
@@ -405,9 +414,11 @@ const WarningPublish = () => {
   const canPublishWarning = hasPermission('button:warning:publish')
   const [form] = Form.useForm<WarningFormValues>()
   const location = useLocation()
+  const navigate = useNavigate()
   const state = (location.state || {}) as LocationState
   const values = Form.useWatch([], form)
   const [submitting, setSubmitting] = useState(false)
+  const [aiGenerating, setAiGenerating] = useState(false)
   const [typhoonList, setTyphoonList] = useState<TyphoonListItem[]>([])
   const [linkedCenter, setLinkedCenter] = useState<number[] | undefined>(state.center)
   const [linkedAnalysis, setLinkedAnalysis] = useState<WarningPayload['analysis']>(
@@ -591,7 +602,46 @@ const WarningPublish = () => {
     message.success('已生成防御建议模板')
   }
 
-  const handleFormItemDragEnd = ({ active, over }: DragEndEvent) => {
+  const generateAiWarningDraft = async () => {
+    const formValues = form.getFieldsValue()
+    const type = formValues.type || 'rain'
+    const level = formValues.level || 'low'
+    const locationText =
+      formValues.location || (linkedCenter ? linkedCenter.join(', ') : state.center?.join(', '))
+
+    setAiGenerating(true)
+    try {
+      const res = await generateWarningDraft({
+        title: formValues.title,
+        type,
+        level,
+        location: locationText,
+        radius: formValues.radius || state.radius || 5,
+        publisher: formValues.publisher,
+        analysis: linkedAnalysis,
+        pois: linkedPois,
+        baseDescription: formValues.description,
+      })
+
+      if (res.code === 0) {
+        form.setFieldsValue({
+          title: formValues.title || `${typeNameMap[type]}${levelNameMap[level]}预警`,
+          description: res.data.content,
+        })
+        message.success(`${res.message}：${res.data.model}`)
+        return
+      }
+
+      message.error(res.message)
+    } catch (error) {
+      console.error('AI warning draft failed:', error)
+      message.error('AI 预警文案生成失败，请检查后端 LLM 配置')
+    } finally {
+      setAiGenerating(false)
+    }
+  }
+
+  const handleFormItemDragChange = ({ active, over }: DragEndEvent | DragOverEvent) => {
     if (!over || active.id === over.id) return
 
     setFormItemOrder(current => {
@@ -606,6 +656,13 @@ const WarningPublish = () => {
   const resetFormItemOrder = () => {
     setFormItemOrder(defaultFormItemOrder)
     message.success('已恢复表单默认顺序')
+  }
+
+  const openLinkedTyphoonTrack = () => {
+    const typhoonNo = form.getFieldValue('typhoonNo') || state.typhoonWarning?.no
+    navigate('/monitor/typhoon', {
+      state: typhoonNo ? { typhoonNo } : undefined,
+    })
   }
 
   const buildPayload = (formValues: WarningFormValues, status: WarningStatus): WarningPayload => ({
@@ -631,6 +688,9 @@ const WarningPublish = () => {
       const res = await createWarning(payload)
       if (res.code === 0) {
         message.success(res.message)
+        if (status === 'published') {
+          window.dispatchEvent(new Event(warningChangedEvent))
+        }
         return
       }
 
@@ -647,6 +707,100 @@ const WarningPublish = () => {
   )
   const getFormItemOrder = (id: FormItemKey) => visibleFormItemOrder.indexOf(id)
 
+  const previewItemMap: Record<FormItemKey, ReactNode> = {
+    title: (
+      <div className={styles.previewItem}>
+        <div className={styles.previewItemTitle}>预警标题</div>
+        <div className={styles.previewValue}>{values?.title || '-'}</div>
+      </div>
+    ),
+    location: (
+      <div className={styles.previewItem}>
+        <div className={styles.previewItemTitle}>预警地点</div>
+        <div className={styles.previewValue}>{values?.location || '-'}</div>
+        <div className={styles.previewSubValue}>
+          中心点：{linkedCenter ? linkedCenter.map(item => item.toFixed(3)).join(', ') : '-'}
+        </div>
+      </div>
+    ),
+    typeLevel: (
+      <div className={styles.previewItem}>
+        <div className={styles.previewMetaGrid}>
+          <div>
+            <div className={styles.previewItemTitle}>灾害类型</div>
+            <Tag color="blue">{labelOf(typeOptions, values?.type)}</Tag>
+          </div>
+          <div>
+            <div className={styles.previewItemTitle}>风险等级</div>
+            {values?.level ? (
+              <Tag color={levelColorMap[values.level]}>{labelOf(levelOptions, values.level)}</Tag>
+            ) : (
+              '-'
+            )}
+          </div>
+        </div>
+      </div>
+    ),
+    template: (
+      <div className={styles.advicePreview}>
+        <div className={styles.adviceTitle}>当前建议模板</div>
+        {currentAdvice.map(item => (
+          <div key={item} className={styles.adviceItem}>
+            {item}
+          </div>
+        ))}
+      </div>
+    ),
+    typhoonNo: (
+      <div className={styles.previewItem}>
+        <div className={styles.previewItemTitle}>关联台风路径</div>
+        <div className={styles.previewValue}>
+          {String(linkedAnalysis?.typhoonName || values?.typhoonNo || '-')}
+        </div>
+        <div className={styles.previewSubValue}>
+          {selectedType === 'typhoon'
+            ? String(linkedAnalysis?.risk || linkedAnalysis?.movement || '-')
+            : '-'}
+        </div>
+      </div>
+    ),
+    radiusPublisher: (
+      <div className={styles.previewItem}>
+        <div className={styles.previewMetaGrid}>
+          <div>
+            <div className={styles.previewItemTitle}>影响半径</div>
+            <div className={styles.previewValue}>{values?.radius || 0} km</div>
+          </div>
+          <div>
+            <div className={styles.previewItemTitle}>发布人</div>
+            <div className={styles.previewValue}>{values?.publisher || '-'}</div>
+          </div>
+        </div>
+        <div className={styles.previewSubValue}>
+          关联分析：
+          {selectedType === 'typhoon'
+            ? String(linkedAnalysis?.typhoonName || linkedAnalysis?.risk || '-')
+            : `${linkedAnalysis?.max ?? '-'} mm / ${linkedPois.length} 个设施`}
+        </div>
+      </div>
+    ),
+    description: (
+      <div className={styles.previewItem}>
+        <div className={styles.previewItemTitle}>预警描述</div>
+        <div className={styles.previewText}>{values?.description || '暂无预警描述'}</div>
+      </div>
+    ),
+    actions: (
+      <div className={styles.previewItem}>
+        <div className={styles.previewItemTitle}>发布操作</div>
+        <Space wrap>
+          <Tag color={canCreateWarning ? 'green' : 'default'}>保存草稿</Tag>
+          <Tag color={canPublishWarning ? 'blue' : 'default'}>发布预警</Tag>
+        </Space>
+      </div>
+    ),
+  }
+
   const panelMap: Record<PanelKey, ReactNode> = {
     form: (
       <SortablePanel
@@ -659,7 +813,7 @@ const WarningPublish = () => {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragEnd={handleFormItemDragEnd}
+            onDragEnd={handleFormItemDragChange}
           >
             <SortableContext items={visibleFormItemOrder} strategy={rectSortingStrategy}>
               <div className={styles.formItemList}>
@@ -716,16 +870,47 @@ const WarningPublish = () => {
                   label="template"
                   order={getFormItemOrder('template')}
                 >
-                  <div className={styles.templateBar}>
-                    <div>
-                      <strong>防御建议模板</strong>
-                      <span>
-                        根据当前类型和风险等级生成发布文案，暴雨高风险会自动补齐低洼转移、排水巡查和交通管制提醒。
-                      </span>
+                  <div className={styles.aiTemplateCard}>
+                    <div className={styles.aiTemplateHeader}>
+                      <div>
+                        <strong>AI 预警文案助手</strong>
+                        <span>根据灾害类型、风险等级、影响区域和监测分析自动生成结构化预警正文。</span>
+                      </div>
+                      <Tag color={sourceMode === 'typhoon' ? 'orange' : 'blue'}>
+                        {sourceMode === 'typhoon' ? '台风路径联动' : '降水分析联动'}
+                      </Tag>
                     </div>
-                    <Button icon={<BulbOutlined />} onClick={applyAdviceTemplate}>
-                      一键生成防御建议
-                    </Button>
+                    <div className={styles.aiPromptGrid}>
+                      <div>
+                        <span>生成依据</span>
+                        <b>{labelOf(typeOptions, selectedType || values?.type || 'rain')}</b>
+                      </div>
+                      <div>
+                        <span>风险等级</span>
+                        <b>{labelOf(levelOptions, selectedLevel || values?.level || 'low')}</b>
+                      </div>
+                      <div>
+                        <span>关联数据</span>
+                        <b>
+                          {sourceMode === 'typhoon'
+                            ? String(linkedAnalysis?.typhoonName || values?.typhoonNo || '待选择')
+                            : `${linkedAnalysis?.max ?? '-'}mm / ${linkedPois.length}个设施`}
+                        </b>
+                      </div>
+                    </div>
+                    <Space wrap className={styles.aiActionRow}>
+                      <Button
+                        type="primary"
+                        icon={<ThunderboltOutlined />}
+                        loading={aiGenerating}
+                        onClick={() => void generateAiWarningDraft()}
+                      >
+                        AI 生成预警正文
+                      </Button>
+                      <Button icon={<BulbOutlined />} onClick={applyAdviceTemplate}>
+                        仅生成防御建议
+                      </Button>
+                    </Space>
                   </div>
                 </SortableFormItem>
 
@@ -735,19 +920,26 @@ const WarningPublish = () => {
                     label="typhoon path"
                     order={getFormItemOrder('typhoonNo')}
                   >
-                    <Form.Item label="关联台风路径" name="typhoonNo">
-                      <Select
-                        allowClear
-                        placeholder="选择台风后自动生成预警内容"
-                        options={typhoonList.map(item => ({
-                          label: `${item.no} ${item.name} ${item.englishName}`,
-                          value: item.no,
-                        }))}
-                        onChange={value => {
-                          if (value) void applyTyphoonData(value)
-                        }}
-                      />
-                    </Form.Item>
+                    <div className={styles.formRow}>
+                      <Form.Item label="关联台风路径" name="typhoonNo">
+                        <Select
+                          allowClear
+                          placeholder="选择台风后自动生成预警内容"
+                          options={typhoonList.map(item => ({
+                            label: `${item.no} ${item.name} ${item.englishName}`,
+                            value: item.no,
+                          }))}
+                          onChange={value => {
+                            if (value) void applyTyphoonData(value)
+                          }}
+                        />
+                      </Form.Item>
+                      <Form.Item label="路径联动">
+                        <Button icon={<RadarChartOutlined />} onClick={openLinkedTyphoonTrack}>
+                          查看台风路径
+                        </Button>
+                      </Form.Item>
+                    </div>
                   </SortableFormItem>
                 )}
 
@@ -819,35 +1011,10 @@ const WarningPublish = () => {
         hint="实时核对发布内容和建议模板"
         cardClassName={styles.previewCard}
       >
-        <Descriptions column={1} size="small">
-          <Descriptions.Item label="标题">{values?.title || '-'}</Descriptions.Item>
-          <Descriptions.Item label="地点">{values?.location || '-'}</Descriptions.Item>
-          <Descriptions.Item label="类型">
-            <Tag color="blue">{labelOf(typeOptions, values?.type)}</Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="等级">
-            {values?.level ? (
-              <Tag color={levelColorMap[values.level]}>{labelOf(levelOptions, values.level)}</Tag>
-            ) : (
-              '-'
-            )}
-          </Descriptions.Item>
-          <Descriptions.Item label="半径">{values?.radius || 0} km</Descriptions.Item>
-          <Descriptions.Item label="中心点">
-            {linkedCenter ? linkedCenter.map(item => item.toFixed(3)).join(', ') : '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="关联分析">
-            {selectedType === 'typhoon'
-              ? String(linkedAnalysis?.typhoonName || linkedAnalysis?.risk || '-')
-              : `${state.analysis?.max ?? '-'} mm / ${state.pois?.length ?? 0} 个设施`}
-          </Descriptions.Item>
-        </Descriptions>
-        <div className={styles.previewText}>{values?.description || '暂无预警描述'}</div>
-        <div className={styles.advicePreview}>
-          <div className={styles.adviceTitle}>当前建议模板</div>
-          {currentAdvice.map(item => (
-            <div key={item} className={styles.adviceItem}>
-              {item}
+        <div className={styles.previewItemList}>
+          {visibleFormItemOrder.map(item => (
+            <div key={item} className={styles.previewSortableItem}>
+              {previewItemMap[item]}
             </div>
           ))}
         </div>

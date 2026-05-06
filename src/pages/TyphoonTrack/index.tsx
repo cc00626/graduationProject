@@ -4,7 +4,7 @@ import { Feature, Map, Overlay, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import OSM from 'ol/source/OSM'
+import XYZ from 'ol/source/XYZ'
 import GeoJSON from 'ol/format/GeoJSON'
 import { fromLonLat } from 'ol/proj'
 import { Fill, Stroke, Style, Text } from 'ol/style'
@@ -16,7 +16,7 @@ import {
   PauseCircleOutlined,
   PlayCircleOutlined,
 } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getPublishedWarningsByTypes, type WarningRecord } from '@/services/warning'
 import { getTyphoonList, getTyphoonPath, getWindData } from '@/services/typhoon'
 import { createWarningFeatures, getWarningPopupHtml } from '@/utils/map/warningLayer'
@@ -163,8 +163,8 @@ const makeWindCircleStyle = (color: string, opacity: number) =>
   new Style({
     fill: new Fill({ color: color.replace('OPACITY', String(opacity)) }),
     stroke: new Stroke({
-      color: color.replace('OPACITY', String(Math.min(opacity + 0.2, 0.7))),
-      width: 1.5,
+      color: color.replace('OPACITY', String(Math.min(opacity + 0.3, 0.78))),
+      width: 2,
     }),
   })
 
@@ -225,6 +225,8 @@ const TyphoonTrack = () => {
   const [replayIndex, setReplayIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const linkedTyphoonNo = (location.state as { typhoonNo?: string } | null)?.typhoonNo
 
   const primaryPoints = useMemo(() => typhoonData?.primaryPath.map(toPoint) ?? [], [typhoonData])
   const displayPoint = primaryPoints[replayIndex] ?? activePoint
@@ -236,14 +238,26 @@ const TyphoonTrack = () => {
   }, [primaryPoints])
 
   useEffect(() => {
+    const baseLayer = new TileLayer({
+      className: 'weather-base-layer',
+      source: new XYZ({
+        url: 'https://{a-c}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+        crossOrigin: 'anonymous',
+        attributions: '© OpenStreetMap contributors © CARTO',
+        maxZoom: 20,
+      }),
+      opacity: 0.92,
+      zIndex: -1,
+    })
+
     const boundaryLayer = new VectorLayer({
       source: new VectorSource({
         url: '/guang_zhou.geojson',
         format: new GeoJSON(),
       }),
       style: new Style({
-        stroke: new Stroke({ color: '#1890ff', width: 2, lineDash: [4, 4] }),
-        fill: new Fill({ color: 'rgba(24, 144, 255, 0.05)' }),
+        stroke: new Stroke({ color: '#0f5fb8', width: 2.4, lineDash: [5, 5] }),
+        fill: new Fill({ color: 'rgba(15, 95, 184, 0.04)' }),
       }),
       zIndex: 0,
     })
@@ -267,7 +281,7 @@ const TyphoonTrack = () => {
     const map = new Map({
       target: mapRef.current || undefined,
       layers: [
-        new TileLayer({ source: new OSM() }),
+        baseLayer,
         boundaryLayer,
         trackLayer,
         warningLayer,
@@ -362,11 +376,15 @@ const TyphoonTrack = () => {
       if (res?.data?.length) {
         const list = res.data
         setTyphoonList(list)
-        setSelectedTyphoon(current => current || list[0].no)
+        setSelectedTyphoon(current =>
+          linkedTyphoonNo && list.some(item => item.no === linkedTyphoonNo)
+            ? linkedTyphoonNo
+            : current || list[0].no,
+        )
       }
     }
     void loadList()
-  }, [])
+  }, [linkedTyphoonNo])
 
   useEffect(() => {
     const loadData = async () => {

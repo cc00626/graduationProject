@@ -27,7 +27,7 @@ export const getTyphoonPath = async (no: string) => {
 export const getTyphoonList = async () => {
   try {
     const response = (await request.get('/typhoon/list')) as ApiResponse<unknown>
-    return response.data
+    return response
   } catch (error) {
     console.error('获取台风列表失败:', error)
     return null

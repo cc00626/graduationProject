@@ -21,35 +21,102 @@
   margin-bottom: 16px;
 }
 
-.permissionGrid {
+.rbacLayout {
   display: grid;
-  gap: 14px;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
 }
 
-.group {
-  padding: 12px;
-  background: #f8fafc;
-  border: 1px solid #e5ebf2;
+.rolePanel,
+.permissionPanel,
+.catalogPanel {
   border-radius: 8px;
 }
 
-.groupTitle {
-  margin-bottom: 10px;
-  color: #17233d;
-  font-weight: 600;
+.rolePanel :global(.ant-card-body) {
+  padding: 0;
 }
 
-.group :global(.ant-checkbox-wrapper) {
-  margin-inline-start: 0;
-  padding: 6px 8px;
-  background: #fff;
-  border: 1px solid #edf1f7;
+.catalogPanel {
+  grid-column: 2;
+}
+
+.roleRow,
+.selectedRoleRow {
+  cursor: pointer;
+}
+
+.roleRow:hover td {
+  background: #f8fafc !important;
+}
+
+.selectedRoleRow td {
+  background: #eaf3ff !important;
+}
+
+.roleItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 0;
+
+  div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  strong {
+    color: #17233d;
+    font-size: 15px;
+  }
+}
+
+.groupNode {
+  color: #17233d;
+  font-size: 15px;
+}
+
+.permissionPanel :global(.ant-tree) {
+  padding: 4px 0;
+  background: transparent;
+}
+
+.permissionPanel :global(.ant-tree-treenode) {
+  width: 100%;
+  padding: 4px 0;
+}
+
+.permissionPanel :global(.ant-tree-node-content-wrapper) {
+  min-height: 34px;
   border-radius: 6px;
+}
+
+.permissionPanel :global(.ant-tree-node-content-wrapper:hover) {
+  background: #f8fafc;
+}
+
+.groupInputHint {
+  padding: 8px 12px;
+  color: #64748b;
+  font-size: 12px;
+  border-top: 1px solid #edf1f7;
 }
 
 @media (max-width: 760px) {
   .header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .rbacLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogPanel {
+    grid-column: auto;
   }
 }

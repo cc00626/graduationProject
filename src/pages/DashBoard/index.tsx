@@ -1,169 +1,359 @@
-﻿import { type FC } from 'react'
-import { AlertOutlined, BarChartOutlined, RiseOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { type FC, useEffect, useMemo, useState } from 'react'
+import {
+  AlertOutlined,
+  CloudOutlined,
+  DashboardOutlined,
+  ReloadOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons'
+import { Button, Card, Col, Empty, Row, Skeleton, Space, Statistic, Table, Tag, Typography, message } from 'antd'
+import type { ColumnsType } from 'antd/es/table'
 import OlRiskMap from './components/OlRiskMap'
 import style from './index.module.scss'
+import { getRainMonitor, type RainMonitorData, type RainTopStation } from '@/services/rain'
+import { getWarnings, type WarningRecord } from '@/services/warning'
+import { getWindHistory, type WindHistoryItem } from '@/services/wind'
 
-const summaryCards = [
-  { title: '记录总数', value: '12,578', unit: '条', trend: '+3.4%' },
-  { title: '预警完成率', value: '81%', unit: '', trend: '+1.2%' },
-]
+type RiskLevel = 1 | 2 | 3
 
-const alerts = [
-  'A1 暴雨蓝色预警信号（进行中）',
-  'A1 雷电黄色预警信号（进行中）',
-  'A3 大风蓝色预警信号（发布）',
-  'A4 地质灾害风险提示（关注）',
-  'A5 山洪灾害短临提醒（发布）',
-]
+type ThresholdItem = {
+  key: string
+  name: string
+  value: number
+  color: string
+}
 
-const areaData = [
-  { area: '天河区', value: 27 },
-  { area: '白云区', value: 31 },
-  { area: '番禺区', value: 22 },
-  { area: '南沙区', value: 12 },
-  { area: '增城区', value: 18 },
-  { area: '从化区', value: 15 },
-]
+const { Title, Text } = Typography
 
-const gauges = [
-  { name: '降雨', pct: 74 },
-  { name: '风速', pct: 53 },
-  { name: '湿度', pct: 87 },
-  { name: '气压', pct: 64 },
-  { name: '雷达', pct: 69 },
-  { name: '能见度', pct: 42 },
-]
-
-const districtRisk = {
+const districtRiskFallback = {
   荔湾区: 1,
-  越秀区: 2,
+  越秀区: 1,
   海珠区: 1,
-  天河区: 2,
-  白云区: 3,
-  黄埔区: 2,
-  番禺区: 2,
+  天河区: 1,
+  白云区: 1,
+  黄埔区: 1,
+  番禺区: 1,
   花都区: 1,
   南沙区: 1,
   从化区: 1,
-  增城区: 3,
-} as const
+  增城区: 1,
+} as Record<string, RiskLevel>
 
-const markerValues = [
-  { name: '白云区', coord: [113.27324, 23.15792] as [number, number], value: 27703 },
-  { name: '天河区', coord: [113.36199, 23.12463] as [number, number], value: 19143 },
-  { name: '增城区', coord: [113.82958, 23.2905] as [number, number], value: 25660 },
-]
+const getWindValue = (item?: WindHistoryItem) => {
+  const maxWind = item?.maxWind
+  if (typeof maxWind === 'number') return maxWind
+  return maxWind?.value ?? 0
+}
+
+const getWindStation = (item?: WindHistoryItem) => {
+  const maxWind = item?.maxWind
+  if (typeof maxWind === 'object') return maxWind.station || '暂无站点'
+  return item?.maxStation || item?.stationName || item?.station || '暂无站点'
+}
+
+const getRiskByPrecip = (value: number): RiskLevel => {
+  if (value >= 50) return 3
+  if (value >= 25) return 2
+  return 1
+}
+
+const warningLevelText: Record<WarningRecord['level'], string> = {
+  low: '低风险',
+  medium: '中风险',
+  high: '高风险',
+}
+
+const warningLevelColor: Record<WarningRecord['level'], string> = {
+  low: 'blue',
+  medium: 'orange',
+  high: 'red',
+}
+
+const statusText: Record<WarningRecord['status'], string> = {
+  draft: '草稿',
+  published: '已发布',
+  resolved: '已解除',
+  archived: '已归档',
+}
+
+const statusColor: Record<WarningRecord['status'], string> = {
+  draft: 'default',
+  published: 'green',
+  resolved: 'blue',
+  archived: 'default',
+}
 
 const DashBoard: FC = () => {
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [rainData, setRainData] = useState<RainMonitorData | null>(null)
+  const [warnings, setWarnings] = useState<WarningRecord[]>([])
+  const [warningTotal, setWarningTotal] = useState(0)
+  const [windHistory, setWindHistory] = useState<WindHistoryItem[]>([])
+  const [lastUpdated, setLastUpdated] = useState('')
+
+  const loadData = async (silent = false) => {
+    if (silent) {
+      setRefreshing(true)
+    } else {
+      setLoading(true)
+    }
+
+    try {
+      const [rainRes, warningRes, windRes] = await Promise.all([
+        getRainMonitor('1h', ''),
+        getWarnings({ page: 1, pageSize: 6 }),
+        getWindHistory({ page: 1, pageSize: 1 }),
+      ])
+
+      if (rainRes.success) {
+        setRainData(rainRes.data)
+      }
+
+      if (warningRes.code === 0) {
+        setWarnings(warningRes.data.items)
+        setWarningTotal(warningRes.data.total)
+      }
+
+      const windSuccess =
+        windRes.code === 0 || (windRes as unknown as { success?: boolean }).success === true
+
+      if (windSuccess) {
+        setWindHistory(windRes.data)
+      }
+
+      setLastUpdated(new Date().toLocaleString('zh-CN', { hour12: false }))
+    } catch (error) {
+      console.error('dashboard load failed:', error)
+      message.error('看板数据加载失败，请稍后重试')
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadData()
+    const timer = window.setInterval(() => {
+      void loadData(true)
+    }, 5 * 60 * 1000)
+
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const latestWind = windHistory[0]
+  const maxWindValue = getWindValue(latestWind)
+  const activeWarnings = warnings.filter(item => item.status === 'published')
+
+  const districtRisk = useMemo(() => {
+    if (!rainData?.districts.length) return districtRiskFallback
+
+    return rainData.districts.reduce<Record<string, RiskLevel>>(
+      (result, item) => ({
+        ...result,
+        [item.district]: getRiskByPrecip(item.max),
+      }),
+      { ...districtRiskFallback },
+    )
+  }, [rainData])
+
+  const markerValues = useMemo(
+    () =>
+      (rainData?.topStations || []).slice(0, 3).map(item => ({
+        name: item.district,
+        coord: item.coordinates,
+        value: Math.round(item.precip),
+      })),
+    [rainData],
+  )
+
+  const thresholdItems: ThresholdItem[] = [
+    { key: 'watch', name: '关注站点', value: rainData?.thresholds.watch ?? 0, color: 'gold' },
+    { key: 'warning', name: '警戒站点', value: rainData?.thresholds.warning ?? 0, color: 'orange' },
+    { key: 'danger', name: '高风险站点', value: rainData?.thresholds.danger ?? 0, color: 'red' },
+  ]
+
+  const rainColumns: ColumnsType<RainTopStation> = [
+    {
+      title: '排名',
+      dataIndex: 'rank',
+      width: 70,
+    },
+    {
+      title: '站点',
+      dataIndex: 'stationName',
+      ellipsis: true,
+    },
+    {
+      title: '区域',
+      dataIndex: 'district',
+      width: 96,
+    },
+    {
+      title: '降雨量',
+      dataIndex: 'precip',
+      width: 100,
+      render: value => `${value} mm`,
+      sorter: (a, b) => b.precip - a.precip,
+    },
+    {
+      title: '等级',
+      dataIndex: 'level',
+      width: 110,
+      render: level => <Tag color={level.color}>{level.label}</Tag>,
+    },
+  ]
+
+  const warningColumns: ColumnsType<WarningRecord> = [
+    {
+      title: '标题',
+      dataIndex: 'title',
+      ellipsis: true,
+    },
+    {
+      title: '地点',
+      dataIndex: 'location',
+      ellipsis: true,
+    },
+    {
+      title: '等级',
+      dataIndex: 'level',
+      width: 96,
+      render: (level: WarningRecord['level']) => (
+        <Tag color={warningLevelColor[level]}>{warningLevelText[level]}</Tag>
+      ),
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      width: 96,
+      render: (status: WarningRecord['status']) => (
+        <Tag color={statusColor[status]}>{statusText[status]}</Tag>
+      ),
+    },
+  ]
+
   return (
-    <div className={style.screen}>
-      <section className={style.centerStage}>
-        <header className={style.stageTitle}>广州市气象灾害风险实时态势分布</header>
-        <div className={style.mapBoard}>
-          <OlRiskMap riskByDistrict={districtRisk} markers={markerValues} />
+    <div className={style.page}>
+      <div className={style.header}>
+        <div>
+          <Title level={2}>综合看板</Title>
+          <Text type="secondary">
+            汇总降雨、风况、预警和风险分布，作为登录后的统一入口。
+          </Text>
         </div>
-      </section>
+        <Space>
+          <Text type="secondary">{lastUpdated ? `更新于 ${lastUpdated}` : '等待数据刷新'}</Text>
+          <Button
+            type="primary"
+            icon={<ReloadOutlined />}
+            loading={refreshing}
+            onClick={() => void loadData(true)}
+          >
+            刷新
+          </Button>
+        </Space>
+      </div>
 
-      <aside className={style.rightPanel}>
-        <div className={style.cardGrid}>
-          {summaryCards.map(card => (
-            <article key={card.title} className={style.card + ' ' + style.summaryCard}>
-              <div className={style.cardHeader}>
-                <BarChartOutlined />
-                <span>{card.title}</span>
-              </div>
-              <div className={style.bigValue}>
-                {card.value}
-                <small>{card.unit}</small>
-              </div>
-              <div className={style.trendText}>
-                <RiseOutlined /> {card.trend}
-              </div>
-            </article>
-          ))}
-        </div>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} xl={6}>
+          <Card className={style.metricCard}>
+            <Statistic
+              title="雨量站点"
+              value={rainData?.stationCount ?? 0}
+              suffix="个"
+              prefix={<CloudOutlined className={style.metricIcon} />}
+            />
+            <Text type="secondary">平均 {rainData?.avgPrecip ?? 0} mm</Text>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <Card className={style.metricCard}>
+            <Statistic
+              title="最大降雨"
+              value={rainData?.maxPrecip ?? 0}
+              suffix="mm"
+              prefix={<DashboardOutlined className={style.metricIcon} />}
+            />
+            <Text type="secondary">{rainData?.thresholds.message || '暂无阈值风险'}</Text>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <Card className={style.metricCard}>
+            <Statistic
+              title="活跃预警"
+              value={activeWarnings.length}
+              suffix="条"
+              prefix={<AlertOutlined className={style.metricIcon} />}
+            />
+            <Text type="secondary">预警总数 {warningTotal} 条</Text>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <Card className={style.metricCard}>
+            <Statistic
+              title="最大风速"
+              value={maxWindValue || 0}
+              suffix="m/s"
+              prefix={<ThunderboltOutlined className={style.metricIcon} />}
+            />
+            <Text type="secondary">{getWindStation(latestWind)}</Text>
+          </Card>
+        </Col>
+      </Row>
 
-        <article className={style.card}>
-          <div className={style.cardHeader}>
-            <AlertOutlined />
-            <span>告警统计</span>
-          </div>
-          <ul className={style.alertList}>
-            {alerts.map(item => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </article>
-
-        <article className={style.card}>
-          <div className={style.cardHeader}>
-            <ThunderboltOutlined />
-            <span>传感器状态占比</span>
-          </div>
-          <div className={style.donutWrap}>
-            <div className={style.donut}>
-              <strong>86%</strong>
-              <span>在线</span>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} xl={15}>
+          <Card
+            title="风险分布"
+            extra={<Tag color={rainData?.thresholds.danger ? 'red' : 'green'}>{rainData?.thresholds.danger ? '高风险' : '运行正常'}</Tag>}
+            className={style.card}
+          >
+            <div className={style.mapPanel}>
+              <OlRiskMap riskByDistrict={districtRisk} markers={markerValues} />
             </div>
-            <div className={style.legendList}>
-              <span>
-                <i className={style.legend1}></i>在线 86%
-              </span>
-              <span>
-                <i className={style.legend2}></i>离线 9%
-              </span>
-              <span>
-                <i className={style.legend3}></i>异常 5%
-              </span>
+          </Card>
+        </Col>
+        <Col xs={24} xl={9}>
+          <Card title="阈值触发状态" className={style.card}>
+            <div className={style.thresholdGrid}>
+              {thresholdItems.map(item => (
+                <div key={item.key} className={style.thresholdItem}>
+                  <Tag color={item.color}>{item.name}</Tag>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
             </div>
-          </div>
-        </article>
-      </aside>
+          </Card>
 
-      <section className={style.bottomPanel}>
-        <article className={style.card}>
-          <div className={style.cardHeader}>
-            <BarChartOutlined />
-            <span>各区告警记录数</span>
-          </div>
-          <div className={style.barChart}>
-            {areaData.map(item => (
-              <div key={item.area} className={style.barItem}>
-                <div className={style.barTrack}>
-                  <div className={style.barFill} style={{ height: `${item.value * 2.2}px` }}></div>
-                </div>
-                <span className={style.barLabel}>{item.area}</span>
-              </div>
-            ))}
-          </div>
-        </article>
+          <Card title="最新预警" className={style.card}>
+            {loading ? (
+              <Skeleton active paragraph={{ rows: 4 }} title={false} />
+            ) : warnings.length ? (
+              <Table
+                rowKey="_id"
+                columns={warningColumns}
+                dataSource={warnings}
+                pagination={false}
+                size="small"
+              />
+            ) : (
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无预警" />
+            )}
+          </Card>
+        </Col>
+      </Row>
 
-        <article className={style.card}>
-          <div className={style.cardHeader}>
-            <RiseOutlined />
-            <span>综合风险指数</span>
-          </div>
-          <div className={style.lineFake}></div>
-        </article>
-
-        <article className={style.card}>
-          <div className={style.cardHeader}>
-            <ThunderboltOutlined />
-            <span>监测因子实时率</span>
-          </div>
-          <div className={style.gaugeGrid}>
-            {gauges.map(item => (
-              <div key={item.name} className={style.gaugeItem}>
-                <span>{item.name}</span>
-                <div className={style.gaugeTrack}>
-                  <div className={style.gaugeFill} style={{ width: `${item.pct}%` }}></div>
-                </div>
-                <b>{item.pct}%</b>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
+      <Card title="雨量站排行" className={style.card}>
+        <Table
+          rowKey="stationCode"
+          columns={rainColumns}
+          dataSource={rainData?.topStations || []}
+          loading={loading}
+          pagination={false}
+          size="middle"
+        />
+      </Card>
     </div>
   )
 }

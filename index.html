@@ -11,6 +11,11 @@
         height: 100%;
         margin: 0;
       }
+      .coze-chat-sdk-semi-image-preview-group {
+        img {
+          width: 300px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -43,7 +48,7 @@
          */
         auth: {
           type: 'token',
-          token: 'cztei_hNV1sD2Gd0F5tbiO4kdEXv381QpHhcdpZ560Q68mvNnrUtHFxH8QUfQ25HMTRxHrA',
+          token: 'sat_MeENAIu3fAYCup7qANoPZsrgGRiTA9WtvMOxdFNdPzx03XJdxFqyyjzvyfDnSSG2',
           onRefreshToken: async () => 'token',
         },
         /**
@@ -54,8 +59,8 @@
          */
         userInfo: {
           id: 'user',
-          url: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/coze-logo.png',
-          nickname: 'User',
+          url: '/assets/icons/weather-ai-assistant.svg',
+          nickname: '气象值班员',
         },
         ui: {
           /**
@@ -66,9 +71,9 @@
            * @param base.zIndex - The z-index of the chat box.
            */
           base: {
-            icon: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/chatsdk-logo.png',
+            icon: '/assets/icons/weather-ai-assistant.svg',
             layout: 'pc',
-            lang: 'en',
+            lang: 'zh-CN',
             zIndex: 1000,
           },
           /**
@@ -94,7 +99,7 @@
            */
           footer: {
             isShow: true,
-            expressionText: 'Powered by ...',
+            expressionText: '气象灾害预警 AI 助手',
           },
           /**
            * Control the UI and basic capabilities of the chat box.
@@ -104,7 +109,7 @@
            * @param chatBot.el - Container for setting the placement of the chat box (Element).
            */
           chatBot: {
-            title: 'Coze Bot',
+            title: '气象预警助手',
             uploadable: true,
             width: 390,
           },

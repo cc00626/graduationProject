@@ -7,16 +7,16 @@ const AMAP_KEY = '089c43faeb7ee3a6808108f0b3d5215e'
  * @param {string} types POI类型，多个用 | 分隔
  * @param {number} radius 搜索半径（米）
  */
-async function searchNearbyResources(location: any, types = '141200', radius = 5000) {
+export async function searchNearbyResources(location: string, types = '141200', radius = 5000) {
   const url = `https://restapi.amap.com/v5/place/around`
 
   // 构造请求参数
   const params = new URLSearchParams({
     key: AMAP_KEY,
-    location: location, // 必须是 "113.26,23.13" 这种格式
-    types: types, // 例如：141200(医疗保健), 150500(地铁站)
-    radius: radius,
-    page_size: 10, // 每页显示多少条数据
+    location, // 必须是 "113.26,23.13" 这种格式
+    types, // 例如：141200(医疗保健), 150500(地铁站)
+    radius: String(radius),
+    page_size: '10', // 每页显示多少条数据
     output: 'json',
   })
 

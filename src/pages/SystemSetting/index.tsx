@@ -3,21 +3,14 @@ import {
   Alert,
   Avatar,
   Button,
-  Card,
   Checkbox,
-  Col,
-  Descriptions,
-  Divider,
   Form,
   Input,
-  Row,
   Select,
   Slider,
-  Space,
   Switch,
   Table,
   Tag,
-  Typography,
   Upload,
   message,
 } from 'antd'
@@ -28,9 +21,10 @@ import {
   LockOutlined,
   ReloadOutlined,
   SaveOutlined,
+  SettingOutlined,
   UploadOutlined,
-  UserSwitchOutlined,
   UserOutlined,
+  UserSwitchOutlined,
 } from '@ant-design/icons'
 import {
   GetCurrentUser,
@@ -53,8 +47,6 @@ import {
   type UserRole,
 } from '@/utils/auth'
 import styles from './index.module.scss'
-
-const { Title, Text } = Typography
 
 const districtOptions = [
   '全市',
@@ -263,134 +255,177 @@ const SystemSetting = () => {
 
   return (
     <div className={styles.page}>
-      <section className={styles.header}>
+      <div className={styles.pageHeader}>
         <div>
-          <Title level={2}>系统配置</Title>
-          <Text>维护个人资料、安全密码，以及广州气象监测业务的常用偏好。</Text>
+          <h2>系统配置</h2>
+          <p>管理账号、安全和业务默认项。参考 Ant Design Pro 与 Grafana 的设置页结构，保持清晰、稳定、可扫描。</p>
         </div>
-        <Button icon={<ReloadOutlined />} onClick={resetPreferences}>
-          恢复业务默认值
+        <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => void handleSaveProfile()}>
+          保存配置
         </Button>
-      </section>
+      </div>
 
       <Form form={profileForm} layout="vertical">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} lg={10}>
-            <Card loading={loading} className={styles.card} title="个人资料">
-              <div className={styles.profileTop}>
-                <Avatar size={96} src={avatar} icon={<UserOutlined />} />
-                <Space direction="vertical" size={8}>
+        <div className={styles.settingsLayout}>
+          <aside className={styles.rail}>
+            <div className={styles.userCard}>
+              <Avatar size={72} src={avatar} icon={<UserOutlined />} />
+              <strong>{user.account}</strong>
+              <Tag color={user.role === 'super_admin' ? 'red' : user.role === 'admin' ? 'blue' : 'default'}>
+                {ROLE_LABELS[user.role || 'user']}
+              </Tag>
+            </div>
+
+            <nav className={styles.navList}>
+              <a href="#profile">
+                <UserOutlined />
+                账号资料
+              </a>
+              <a href="#security">
+                <LockOutlined />
+                密码安全
+              </a>
+              <a href="#preferences">
+                <SettingOutlined />
+                业务偏好
+              </a>
+              <a href="#preview">
+                <BellOutlined />
+                配置预览
+              </a>
+              {canAssignRoles && (
+                <a href="#roles">
+                  <UserSwitchOutlined />
+                  角色分配
+                </a>
+              )}
+            </nav>
+          </aside>
+
+          <main className={styles.main}>
+            <section id="profile" className={styles.section}>
+              <div className={styles.sectionHead}>
+                <div>
+                  <h3>账号资料</h3>
+                  <p>用于登录身份和顶部导航展示。</p>
+                </div>
+              </div>
+
+              <div className={styles.profileRow}>
+                <Avatar size={88} src={avatar} icon={<UserOutlined />} />
+                <div>
                   <Upload {...uploadProps}>
-                    <Button icon={<UploadOutlined />}>上传头像</Button>
+                    <Button loading={loading} icon={<UploadOutlined />}>
+                      上传头像
+                    </Button>
                   </Upload>
-                  <Text type="secondary">支持 JPG、PNG、WebP，建议小于 500KB。</Text>
-                </Space>
+                  <span>支持 JPG、PNG、WebP，建议小于 500KB。</span>
+                </div>
               </div>
 
               <Form.Item name="avatar" hidden>
                 <Input />
               </Form.Item>
 
-              <Form.Item
-                label="用户名"
-                name="account"
-                rules={[
-                  { required: true, message: '请输入用户名' },
-                  {
-                    pattern: /^[a-zA-Z][a-zA-Z0-9_]{3,19}$/,
-                    message: '4-20 位，字母开头，仅支持字母、数字和下划线',
-                  },
-                ]}
-              >
-                <Input prefix={<UserOutlined />} placeholder="请输入用户名" />
-              </Form.Item>
-
-              <Alert
-                type="info"
-                showIcon
-                message="用户名会用于登录；保存后顶部导航会同步显示新的头像和用户名。"
-              />
-            </Card>
-          </Col>
-
-          <Col xs={24} lg={14}>
-            <Card className={styles.card} title="密码安全">
-              <Form form={passwordForm} layout="vertical">
-                <Row gutter={16}>
-                  <Col xs={24} md={8}>
-                    <Form.Item
-                      label="原密码"
-                      name="oldPassword"
-                      rules={[{ required: true, message: '请输入原密码' }]}
-                    >
-                      <Input.Password prefix={<LockOutlined />} placeholder="原密码" />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={8}>
-                    <Form.Item
-                      label="新密码"
-                      name="newPassword"
-                      rules={[
-                        { required: true, message: '请输入新密码' },
-                        { min: 6, max: 32, message: '密码长度需为 6-32 位' },
-                      ]}
-                    >
-                      <Input.Password prefix={<LockOutlined />} placeholder="新密码" />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={8}>
-                    <Form.Item
-                      label="确认新密码"
-                      name="confirmPassword"
-                      dependencies={['newPassword']}
-                      rules={[
-                        { required: true, message: '请再次输入新密码' },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (!value || getFieldValue('newPassword') === value) {
-                              return Promise.resolve()
-                            }
-                            return Promise.reject(new Error('两次输入的新密码不一致'))
-                          },
-                        }),
-                      ]}
-                    >
-                      <Input.Password prefix={<LockOutlined />} placeholder="确认新密码" />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Button
-                  danger
-                  type="primary"
-                  loading={changingPassword}
-                  onClick={() => void handleChangePassword()}
+              <div className={styles.formGrid}>
+                <Form.Item
+                  label="用户名"
+                  name="account"
+                  rules={[
+                    { required: true, message: '请输入用户名' },
+                    {
+                      pattern: /^[a-zA-Z][a-zA-Z0-9_]{3,19}$/,
+                      message: '4-20 位，字母开头，仅支持字母、数字和下划线',
+                    },
+                  ]}
                 >
+                  <Input size="large" prefix={<UserOutlined />} placeholder="请输入用户名" />
+                </Form.Item>
+              </div>
+            </section>
+
+            <section id="security" className={styles.section}>
+              <div className={styles.sectionHead}>
+                <div>
+                  <h3>密码安全</h3>
+                  <p>修改后会重新登录，避免旧会话继续使用。</p>
+                </div>
+              </div>
+
+              <Form form={passwordForm} layout="vertical">
+                <div className={styles.formGridThree}>
+                  <Form.Item
+                    label="原密码"
+                    name="oldPassword"
+                    rules={[{ required: true, message: '请输入原密码' }]}
+                  >
+                    <Input.Password size="large" prefix={<LockOutlined />} placeholder="原密码" />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="新密码"
+                    name="newPassword"
+                    rules={[
+                      { required: true, message: '请输入新密码' },
+                      { min: 6, max: 32, message: '密码长度需为 6-32 位' },
+                    ]}
+                  >
+                    <Input.Password size="large" prefix={<LockOutlined />} placeholder="新密码" />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="确认新密码"
+                    name="confirmPassword"
+                    dependencies={['newPassword']}
+                    rules={[
+                      { required: true, message: '请再次输入新密码' },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          if (!value || getFieldValue('newPassword') === value) {
+                            return Promise.resolve()
+                          }
+                          return Promise.reject(new Error('两次输入的新密码不一致'))
+                        },
+                      }),
+                    ]}
+                  >
+                    <Input.Password size="large" prefix={<LockOutlined />} placeholder="确认新密码" />
+                  </Form.Item>
+                </div>
+
+                <Button danger loading={changingPassword} onClick={() => void handleChangePassword()}>
                   修改密码
                 </Button>
               </Form>
-            </Card>
-          </Col>
+            </section>
 
-          <Col xs={24} lg={15}>
-            <Card className={styles.card} title="业务偏好">
-              <Row gutter={16}>
-                <Col xs={24} md={12}>
-                  <Form.Item label="默认关注区县" name={['preferences', 'defaultDistrict']}>
-                    <Select options={districtOptions} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item label="预警展示范围" name={['preferences', 'warningLevel']}>
-                    <Select
-                      options={[
-                        { label: '全部预警', value: 'all' },
-                        { label: '中高风险', value: 'medium' },
-                        { label: '仅高风险', value: 'high' },
-                      ]}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
+            <section id="preferences" className={styles.section}>
+              <div className={styles.sectionHead}>
+                <div>
+                  <h3>业务偏好</h3>
+                  <p>控制监测页面的默认范围、刷新节奏和图层加载。</p>
+                </div>
+                <Button icon={<ReloadOutlined />} onClick={resetPreferences}>
+                  恢复默认
+                </Button>
+              </div>
+
+              <div className={styles.formGrid}>
+                <Form.Item label="默认关注区县" name={['preferences', 'defaultDistrict']}>
+                  <Select size="large" options={districtOptions} />
+                </Form.Item>
+
+                <Form.Item label="预警展示范围" name={['preferences', 'warningLevel']}>
+                  <Select
+                    size="large"
+                    options={[
+                      { label: '全部预警', value: 'all' },
+                      { label: '中高风险', value: 'medium' },
+                      { label: '仅高风险', value: 'high' },
+                    ]}
+                  />
+                </Form.Item>
+              </div>
 
               <Form.Item label="监测数据刷新间隔（分钟）" name={['preferences', 'refreshInterval']}>
                 <Slider min={1} max={60} marks={{ 1: '1', 5: '5', 15: '15', 30: '30', 60: '60' }} />
@@ -406,71 +441,67 @@ const SystemSetting = () => {
                 </Checkbox.Group>
               </Form.Item>
 
-              <Form.Item
-                label="进入系统后自动展开预警面板"
-                name={['preferences', 'autoOpenWarningPanel']}
-                valuePropName="checked"
-              >
-                <Switch checkedChildren="开启" unCheckedChildren="关闭" />
-              </Form.Item>
-            </Card>
-          </Col>
+              <div className={styles.switchRow}>
+                <div>
+                  <strong>自动展开预警面板</strong>
+                  <span>进入系统后自动显示预警信息，提高值班响应速度。</span>
+                </div>
+                <Form.Item name={['preferences', 'autoOpenWarningPanel']} valuePropName="checked" noStyle>
+                  <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+                </Form.Item>
+              </div>
+            </section>
 
-          <Col xs={24} lg={9}>
-            <Card className={styles.card} title="配置预览">
-              <Descriptions column={1} size="small">
-                <Descriptions.Item label="当前角色">
-                  <Tag color={user.role === 'super_admin' ? 'red' : user.role === 'admin' ? 'blue' : 'default'}>
-                    {ROLE_LABELS[user.role || 'user']}
-                  </Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="当前用户">{user.account}</Descriptions.Item>
-                <Descriptions.Item label="默认区县">
-                  {preferences.defaultDistrict || '全市'}
-                </Descriptions.Item>
-                <Descriptions.Item label="刷新间隔">
-                  {preferences.refreshInterval || defaultPreferences.refreshInterval} 分钟
-                </Descriptions.Item>
-                <Descriptions.Item label="图层">
-                  <Space wrap>
+            <section id="preview" className={styles.section}>
+              <div className={styles.sectionHead}>
+                <div>
+                  <h3>配置预览</h3>
+                  <p>保存前快速核对当前业务默认项。</p>
+                </div>
+              </div>
+
+              <div className={styles.previewGrid}>
+                <div>
+                  <span>默认区县</span>
+                  <strong>{preferences.defaultDistrict || '全市'}</strong>
+                </div>
+                <div>
+                  <span>刷新间隔</span>
+                  <strong>{preferences.refreshInterval || defaultPreferences.refreshInterval} 分钟</strong>
+                </div>
+                <div>
+                  <span>预警面板</span>
+                  <strong>{preferences.autoOpenWarningPanel ? '自动展开' : '手动打开'}</strong>
+                </div>
+                <div className={styles.previewWide}>
+                  <span>默认图层</span>
+                  <div className={styles.tagCloud}>
                     {enabledLayerText.map(item => (
                       <Tag key={item} icon={<CloudOutlined />}>
                         {item}
                       </Tag>
                     ))}
-                  </Space>
-                </Descriptions.Item>
-                <Descriptions.Item label="预警面板">
-                  <Tag color={preferences.autoOpenWarningPanel ? 'green' : 'default'}>
-                    {preferences.autoOpenWarningPanel ? '自动展开' : '手动打开'}
-                  </Tag>
-                </Descriptions.Item>
-              </Descriptions>
-              <Divider />
-              <Alert
-                type="warning"
-                showIcon
-                icon={<BellOutlined />}
-                message="这些偏好会为降水、风场、台风路径和预警业务提供默认工作区，后续页面可以继续读取该配置做个性化加载。"
-              />
-            </Card>
-          </Col>
-          {canAssignRoles && (
-            <Col xs={24}>
-              <Card
-                className={styles.card}
-                title={
-                  <Space>
-                    <UserSwitchOutlined />
-                    权限管理
-                  </Space>
-                }
-              >
+                  </div>
+                </div>
+              </div>
+
+              <Alert type="info" showIcon message="这些偏好会被降水、风场、台风路径和预警业务读取。" />
+            </section>
+
+            {canAssignRoles && (
+              <section id="roles" className={styles.section}>
+                <div className={styles.sectionHead}>
+                  <div>
+                    <h3>角色分配</h3>
+                    <p>控制用户可进入的页面和可执行的预警操作。</p>
+                  </div>
+                </div>
+
                 <Alert
+                  className={styles.roleNotice}
                   type="info"
                   showIcon
-                  message="超级管理员拥有全部权限；管理员可以维护预警但不能分配角色；用户只能查看监测与预警信息，不能设置预警。"
-                  style={{ marginBottom: 16 }}
+                  message="超级管理员拥有全部权限；管理员可维护预警业务；普通用户仅可查看监测与预警信息。"
                 />
                 <Table<AuthUser>
                   rowKey="id"
@@ -486,11 +517,7 @@ const SystemSetting = () => {
                       title: '当前角色',
                       dataIndex: 'role',
                       render: (role: UserRole) => (
-                        <Tag
-                          color={
-                            role === 'super_admin' ? 'red' : role === 'admin' ? 'blue' : 'default'
-                          }
-                        >
+                        <Tag color={role === 'super_admin' ? 'red' : role === 'admin' ? 'blue' : 'default'}>
                           {ROLE_LABELS[role || 'user']}
                         </Tag>
                       ),
@@ -514,20 +541,9 @@ const SystemSetting = () => {
                     },
                   ]}
                 />
-              </Card>
-            </Col>
-          )}
-        </Row>
-
-        <div className={styles.footerBar}>
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            loading={saving}
-            onClick={() => void handleSaveProfile()}
-          >
-            保存系统配置
-          </Button>
+              </section>
+            )}
+          </main>
         </div>
       </Form>
     </div>

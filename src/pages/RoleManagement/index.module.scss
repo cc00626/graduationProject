@@ -17,13 +17,67 @@
   line-height: 1.35;
 }
 
-.table + .table {
-  margin-top: 18px;
+.rbacLayout {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.rolePanel,
+.userPanel {
+  border-radius: 8px;
+}
+
+.rolePanel :global(.ant-card-body) {
+  padding: 0;
+}
+
+.roleRow,
+.selectedRoleRow {
+  cursor: pointer;
+}
+
+.roleRow:hover td {
+  background: #f8fafc !important;
+}
+
+.selectedRoleRow td {
+  background: #eaf3ff !important;
+}
+
+.roleItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
+
+  div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  strong {
+    color: #17233d;
+    font-size: 15px;
+  }
+}
+
+.detailColumn {
+  display: grid;
+  gap: 16px;
 }
 
 @media (max-width: 760px) {
   .header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .rbacLayout {
+    grid-template-columns: 1fr;
   }
 }

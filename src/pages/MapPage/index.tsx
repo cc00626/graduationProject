@@ -6,7 +6,7 @@ import { FullScreen, defaults as defaultControls } from 'ol/control'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import { fromLonLat } from 'ol/proj'
-import OSM from 'ol/source/OSM'
+import XYZ from 'ol/source/XYZ'
 import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style, Text } from 'ol/style'
 import { BorderOutlined, ClearOutlined } from '@ant-design/icons'
@@ -68,10 +68,8 @@ const MapComponent = () => {
   const [selectedStations, setSelectedStations] = useState<any[]>([]) // 存储框选到的站点信息
   const highlightSourceRef = useRef(new VectorSource()) // 高亮图层的数据源
   const weatherImageLayerRef = useRef<ImageLayer<Static> | null>(null)
-  const [activeWeatherType, setActiveWeatherType] = useState<'rain_standard' | 'temp' | 'wind'>(
-    'rain_standard',
-  )
-  const [hasNotified, setHasNotified] = useState(false)
+  const [activeWeatherType] = useState<'rain_standard' | 'temp' | 'wind'>('rain_standard')
+  const [hasNotified] = useState(false)
   const navigate = useNavigate()
   // const getGzStyle = (feature: any) => {
   //   const districtName = feature.get('name')
@@ -194,7 +192,20 @@ const MapComponent = () => {
 
     const initialMap: OLMap = new OLMap({
       target: mapElement.current || undefined,
-      layers: [new TileLayer({ source: new OSM() }), vectorLayer],
+      layers: [
+        new TileLayer({
+          className: 'weather-base-layer',
+          source: new XYZ({
+            url: 'https://{a-c}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            crossOrigin: 'anonymous',
+            attributions: '© OpenStreetMap contributors © CARTO',
+            maxZoom: 20,
+          }),
+          opacity: 0.9,
+          zIndex: -1,
+        }),
+        vectorLayer,
+      ],
       view: new View({
         center: fromLonLat([113.26, 23.13]),
         zoom: 10,

@@ -40,6 +40,31 @@ const ROLE_RANK: Record<UserRole, number> = {
   super_admin: 3,
 }
 
+const BUILTIN_ROLE_PERMISSIONS: Record<string, string[]> = {
+  super_admin: ['*'],
+  admin: [
+    'page:dashboard',
+    'page:monitor:rain',
+    'page:monitor:typhoon',
+    'page:monitor:warning',
+    'page:monitor:warning-list',
+    'page:history',
+    'page:setting',
+    'button:warning:create',
+    'button:warning:update',
+    'button:warning:publish',
+    'button:warning:delete',
+  ],
+  user: [
+    'page:dashboard',
+    'page:monitor:rain',
+    'page:monitor:typhoon',
+    'page:monitor:warning-list',
+    'page:history',
+    'page:setting',
+  ],
+}
+
 const getRoleRank = (role: UserRole) => ROLE_RANK[role] ?? ROLE_RANK.user
 
 export const getUserRole = (user: AuthUser | null = getAuthUser()): UserRole => {
@@ -55,8 +80,12 @@ export const hasRole = (minimumRole: UserRole, user: AuthUser | null = getAuthUs
 }
 
 export const hasPermission = (permission: string, user: AuthUser | null = getAuthUser()) => {
-  if (getUserRole(user) === 'super_admin') return true
-  return Boolean(user?.permissions?.includes(permission))
+  if (user?.permissions?.includes(permission)) {
+    return true
+  }
+
+  const rolePermissions = BUILTIN_ROLE_PERMISSIONS[getUserRole(user)] || []
+  return rolePermissions.includes('*') || rolePermissions.includes(permission)
 }
 
 export const canManageWarnings = (user: AuthUser | null = getAuthUser()) =>
@@ -72,6 +101,7 @@ export const canManagePermissions = (user: AuthUser | null = getAuthUser()) =>
 
 export const getDefaultRoute = (user: AuthUser | null = getAuthUser()) => {
   const candidates = [
+    ['page:dashboard', '/dashboard'],
     ['page:monitor:rain', '/monitor/rain'],
     ['page:monitor:typhoon', '/monitor/typhoon'],
     ['page:monitor:warning-list', '/monitor/warning-list'],
@@ -81,7 +111,7 @@ export const getDefaultRoute = (user: AuthUser | null = getAuthUser()) => {
     ['page:role', '/role'],
   ] as const
 
-  return candidates.find(([permission]) => hasPermission(permission, user))?.[1] || '/login'
+  return candidates.find(([permission]) => hasPermission(permission, user))?.[1] || '/dashboard'
 }
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY)

@@ -33,6 +33,8 @@ export interface PermissionItem {
   name: string
   type: 'page' | 'button' | string
   group: string
+  description?: string
+  builtin?: boolean
 }
 
 export interface RoleItem {
@@ -80,6 +82,18 @@ export const UpdateUserRole = (id: string, role: UserRole) => {
 
 export const GetPermissionCatalog = () => {
   return request.get<ApiResponse<PermissionItem[]>>('/auth/permissions/catalog')
+}
+
+export const CreatePermission = (data: PermissionItem) => {
+  return request.post<ApiResponse<PermissionItem>, PermissionItem>('/auth/permissions', data)
+}
+
+export const UpdatePermission = (code: string, data: Omit<PermissionItem, 'code'>) => {
+  return request.patch<ApiResponse<PermissionItem>, typeof data>(`/auth/permissions/${code}`, data)
+}
+
+export const DeletePermission = (code: string) => {
+  return request.delete<ApiResponse<null>>(`/auth/permissions/${code}`)
 }
 
 export const GetRoles = () => {

@@ -43,7 +43,7 @@ const SiderBar = ({
   }
 
   return (
-    <Sider collapsible collapsed={mergedCollapsed} onCollapse={handleCollapse}>
+    <Sider className={styles.sider} collapsible collapsed={mergedCollapsed} onCollapse={handleCollapse}>
       <div className={styles.logoArea}>
         <span className={styles.brandBadge}>{badge}</span>
         {!mergedCollapsed && <span className={styles.logoText}>{title}</span>}

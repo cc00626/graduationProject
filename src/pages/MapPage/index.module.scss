@@ -26,6 +26,38 @@ $panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
   box-shadow: $panel-shadow;
 }
 
+:global(.weather-base-layer) {
+  filter: saturate(0.7) contrast(0.88) brightness(1.05);
+}
+
+:global(.weather-image-wind) {
+  filter: saturate(1.55) contrast(1.42) brightness(1.08);
+}
+
+:global(.wind-arrow-layer) {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 5px rgba(255, 255, 255, 0.72));
+}
+
+:global(.wind-arrow-tooltip) {
+  min-width: 148px;
+  padding: 9px 11px;
+  color: #eaf6ff;
+  background: rgba(10, 22, 38, 0.9);
+  border: 1px solid rgba(139, 201, 255, 0.42);
+  border-radius: 6px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+  font-size: 12px;
+  line-height: 1.7;
+  pointer-events: none;
+}
+
+:global(.wind-arrow-tooltip-title) {
+  margin-bottom: 3px;
+  color: #7dd3fc;
+  font-weight: 700;
+}
+
 .toolPanel,
 .toolMeasure {
   position: absolute;

@@ -10,6 +10,10 @@
     height: 100%;
   }
 
+  :global(.weather-base-layer) {
+    filter: saturate(0.72) contrast(0.9) brightness(1.04);
+  }
+
   .layerSwitch {
     position: absolute;
     top: 16px;

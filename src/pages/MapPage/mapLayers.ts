@@ -4,7 +4,6 @@ import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style } from 'ol/style'
 import { LAYERS } from '@/constant'
 import { Circle, Text } from 'ol/style'
-import CircleStyle from 'ol/style/Circle'
 import ImageLayer from 'ol/layer/Image'
 import Static from 'ol/source/ImageStatic'
 const geoJsonFormat = new GeoJSON({
@@ -100,7 +99,8 @@ export const createStationLayer = () => {
             width: 3,
           }),
           // 背景标签，增加可读性
-          backgroundFill: status === 'danger' ? new Fill({ color: 'rgba(255,0,0,0.3)' }) : null,
+          backgroundFill:
+            status === 'danger' ? new Fill({ color: 'rgba(255,0,0,0.3)' }) : undefined,
           padding: [2, 4, 2, 4],
         }),
       })
@@ -138,7 +138,8 @@ export const highlightStationStyle = (feature: any) => {
 //气象图
 export const createWeatherImageLayer = (type = 'wind', hour = 0) => {
   const layer = new ImageLayer({
-    opacity: 0.7,
+    className: type === 'wind' ? 'weather-image-layer weather-image-wind' : 'weather-image-layer',
+    opacity: type === 'wind' ? 0.92 : 0.7,
     zIndex: 15, // 位于行政区划(10)之上，站点图标(25)之下
     source: new Static({
       // 路径对应 Python 脚本生成的地址

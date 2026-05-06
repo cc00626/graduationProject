@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react'
 import { useLocation, useParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Row, Col, Descriptions, Tag } from 'antd'
 import { LeftOutlined, FileTextOutlined, RocketOutlined } from '@ant-design/icons'

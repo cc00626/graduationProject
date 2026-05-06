@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Button, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd'
+import { useEffect, useMemo, useState } from 'react'
+import { Button, Card, Descriptions, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd'
 import { DeleteOutlined, PlusOutlined, ReloadOutlined, SaveOutlined } from '@ant-design/icons'
 import {
   CreateRole,
@@ -27,6 +27,7 @@ const RoleManagement = () => {
   const [loading, setLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingRole, setEditingRole] = useState<RoleItem | null>(null)
+  const [selectedRoleKey, setSelectedRoleKey] = useState('')
   const [saving, setSaving] = useState(false)
   const [form] = Form.useForm<RoleFormValues>()
 
@@ -40,6 +41,10 @@ const RoleManagement = () => {
       }
       setRoles(roleRes.data)
       setUsers(userRes.data)
+      setSelectedRoleKey(current => {
+        if (current && roleRes.data.some(role => role.key === current)) return current
+        return roleRes.data[0]?.key || ''
+      })
     } catch {
       message.error('角色数据加载失败')
     } finally {
@@ -117,6 +122,16 @@ const RoleManagement = () => {
     value: role.key,
   }))
 
+  const selectedRole = useMemo(
+    () => roles.find(role => role.key === selectedRoleKey) || roles[0],
+    [roles, selectedRoleKey],
+  )
+
+  const selectedRoleUsers = useMemo(
+    () => users.filter(user => (user.role || 'user') === selectedRole?.key),
+    [selectedRole?.key, users],
+  )
+
   return (
     <div className={styles.page}>
       <section className={styles.header}>
@@ -134,80 +149,116 @@ const RoleManagement = () => {
         </Space>
       </section>
 
-      <Table<RoleItem>
-        rowKey="key"
-        loading={loading}
-        dataSource={roles}
-        pagination={false}
-        className={styles.table}
-        columns={[
-          {
-            title: '角色名称',
-            render: (_, role) => (
-              <Space>
-                <strong>{ROLE_LABELS[role.key] || role.name}</strong>
-                {role.builtin && <Tag color="blue">内置</Tag>}
-              </Space>
-            ),
-          },
-          { title: '角色标识', dataIndex: 'key' },
-          { title: '说明', dataIndex: 'description' },
-          {
-            title: '权限数',
-            width: 100,
-            render: (_, role) => <Tag>{role.permissions.length}</Tag>,
-          },
-          {
-            title: '操作',
-            width: 190,
-            render: (_, role) => (
-              <Space>
-                <Button size="small" icon={<SaveOutlined />} onClick={() => openEditModal(role)}>
-                  编辑
-                </Button>
-                <Popconfirm
-                  title="删除角色"
-                  description={`确认删除 ${role.name}？`}
-                  disabled={role.builtin}
-                  onConfirm={() => void deleteRole(role)}
-                >
-                  <Button size="small" danger icon={<DeleteOutlined />} disabled={role.builtin}>
-                    删除
-                  </Button>
-                </Popconfirm>
-              </Space>
-            ),
-          },
-        ]}
-      />
+      <div className={styles.rbacLayout}>
+        <Card title="角色列表" className={styles.rolePanel}>
+          <Table<RoleItem>
+            rowKey="key"
+            loading={loading}
+            dataSource={roles}
+            pagination={false}
+            showHeader={false}
+            columns={[
+              {
+                render: (_, role) => (
+                  <div className={styles.roleItem}>
+                    <div>
+                      <Space>
+                        <strong>{ROLE_LABELS[role.key] || role.name}</strong>
+                        {role.builtin && <Tag color="blue">内置</Tag>}
+                      </Space>
+                      <Text type="secondary">{role.description || '-'}</Text>
+                    </div>
+                    <Tag>{role.permissions.length} 权限</Tag>
+                  </div>
+                ),
+              },
+            ]}
+            rowClassName={role =>
+              role.key === selectedRole?.key ? styles.selectedRoleRow : styles.roleRow
+            }
+            onRow={role => ({
+              onClick: () => setSelectedRoleKey(role.key),
+            })}
+          />
+        </Card>
 
-      <Table<AuthUser>
-        rowKey="id"
-        loading={loading}
-        dataSource={users}
-        pagination={false}
-        className={styles.table}
-        columns={[
-          { title: '用户', dataIndex: 'account' },
-          {
-            title: '当前角色',
-            dataIndex: 'role',
-            render: (role: UserRole) => <Tag>{ROLE_LABELS[role] || role}</Tag>,
-          },
-          {
-            title: '分配角色',
-            width: 260,
-            render: (_, user) => (
-              <Select<UserRole>
-                value={user.role || 'user'}
-                options={roleOptions}
-                style={{ width: 200 }}
-                onChange={role => void assignRole(user, role)}
-              />
-            ),
-          },
-        ]}
-      />
+        <div className={styles.detailColumn}>
+          <Card
+            title="角色详情"
+            extra={
+              selectedRole && (
+                <Space>
+                  <Button icon={<SaveOutlined />} onClick={() => openEditModal(selectedRole)}>
+                    编辑
+                  </Button>
+                  <Popconfirm
+                    title="删除角色"
+                    description={`确认删除 ${selectedRole.name}？`}
+                    disabled={selectedRole.builtin}
+                    onConfirm={() => void deleteRole(selectedRole)}
+                  >
+                    <Button danger icon={<DeleteOutlined />} disabled={selectedRole.builtin}>
+                      删除
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              )
+            }
+          >
+            {selectedRole && (
+              <Descriptions column={2} size="middle">
+                <Descriptions.Item label="角色名称">
+                  <Space>
+                    <strong>{ROLE_LABELS[selectedRole.key] || selectedRole.name}</strong>
+                    {selectedRole.builtin && <Tag color="blue">内置</Tag>}
+                  </Space>
+                </Descriptions.Item>
+                <Descriptions.Item label="角色标识">
+                  <Text code>{selectedRole.key}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="权限数量">
+                  <Tag color="green">{selectedRole.permissions.length}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="用户数量">
+                  <Tag color="blue">{selectedRoleUsers.length}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="说明" span={2}>
+                  {selectedRole.description || '-'}
+                </Descriptions.Item>
+              </Descriptions>
+            )}
+          </Card>
+
+          <Card title="用户角色分配" className={styles.userPanel}>
+            <Table<AuthUser>
+              rowKey="id"
+              loading={loading}
+              dataSource={users}
+              pagination={false}
+              columns={[
+                { title: '用户', dataIndex: 'account' },
+                {
+                  title: '当前角色',
+                  dataIndex: 'role',
+                  render: (role: UserRole) => <Tag>{ROLE_LABELS[role] || role}</Tag>,
+                },
+                {
+                  title: '分配角色',
+                  width: 260,
+                  render: (_, user) => (
+                    <Select<UserRole>
+                      value={user.role || 'user'}
+                      options={roleOptions}
+                      style={{ width: 200 }}
+                      onChange={role => void assignRole(user, role)}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </Card>
+        </div>
+      </div>
 
       <Modal
         title={editingRole ? '编辑角色' : '添加角色'}

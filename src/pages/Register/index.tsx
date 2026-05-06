@@ -3,7 +3,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import style from './index.module.scss'
 import { UserRegister } from '@/services/user'
-import { saveAuth } from '@/utils/auth'
+import { getDefaultRoute, saveAuth } from '@/utils/auth'
 
 const { Title, Text } = Typography
 
@@ -32,7 +32,7 @@ const Register = () => {
     if (code === 0) {
       message.success(msg)
       saveAuth(token, user)
-      navigate('/dashboard')
+      navigate(getDefaultRoute(user), { replace: true })
       return
     }
 
@@ -99,4 +99,3 @@ const Register = () => {
 }
 
 export default Register
-

@@ -7,7 +7,7 @@ import type BaseLayer from 'ol/layer/Base'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import OSM from 'ol/source/OSM'
+import XYZ from 'ol/source/XYZ'
 import GeoJSON from 'ol/format/GeoJSON'
 import { fromLonLat, toLonLat } from 'ol/proj'
 import { Fill, Stroke, Style, Circle } from 'ol/style'
@@ -179,14 +179,26 @@ const RainMonitor = () => {
   }
 
   useEffect(() => {
+    const baseLayer = new TileLayer({
+      className: 'weather-base-layer',
+      source: new XYZ({
+        url: 'https://{a-c}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+        crossOrigin: 'anonymous',
+        attributions: '© OpenStreetMap contributors © CARTO',
+        maxZoom: 20,
+      }),
+      opacity: 0.92,
+      zIndex: -1,
+    })
+
     const boundaryLayer = new VectorLayer({
       source: new VectorSource({
         url: '/guang_zhou.geojson',
         format: new GeoJSON(),
       }),
       style: new Style({
-        stroke: new Stroke({ color: '#1890ff', width: 2, lineDash: [4, 4] }),
-        fill: new Fill({ color: 'rgba(24, 144, 255, 0.05)' }),
+        stroke: new Stroke({ color: '#0f5fb8', width: 2.4, lineDash: [5, 5] }),
+        fill: new Fill({ color: 'rgba(15, 95, 184, 0.04)' }),
       }),
       visible: layersVisibility.boundary,
       zIndex: 0,
@@ -194,12 +206,12 @@ const RainMonitor = () => {
 
     const rainBreaks = [0.1, 1, 2.5, 5, 10, 25, 50, 80]
     const breakStyles = [
-      { fill: '#d6f7c5', opacity: 0.3 },
-      { fill: '#9ae77e', opacity: 0.4 },
-      { fill: '#60cd65', opacity: 0.5 },
-      { fill: '#5ab6ff', opacity: 0.6 },
-      { fill: '#3178ff', opacity: 0.7 },
-      { fill: '#7c4dff', opacity: 0.8 },
+      { fill: '#d6f7c5', opacity: 0.5 },
+      { fill: '#9ae77e', opacity: 0.58 },
+      { fill: '#60cd65', opacity: 0.66 },
+      { fill: '#5ab6ff', opacity: 0.72 },
+      { fill: '#3178ff', opacity: 0.78 },
+      { fill: '#7c4dff', opacity: 0.84 },
       { fill: '#d03eff', opacity: 0.9 },
     ]
 
@@ -226,8 +238,8 @@ const RainMonitor = () => {
           color: hexToRgba(styleConfig.fill, styleConfig.opacity),
         }),
         stroke: new Stroke({
-          color: 'transparent',
-          width: 0,
+          color: 'rgba(255,255,255,0.28)',
+          width: 0.6,
         }),
       })
     }
@@ -268,7 +280,7 @@ const RainMonitor = () => {
     mapInstance.current = new Map({
       target: mapRef.current ?? undefined,
       layers: [
-        new TileLayer({ source: new OSM() }),
+        baseLayer,
         boundaryLayer,
         rainLayer,
         analysisLayer,

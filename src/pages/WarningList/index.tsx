@@ -38,6 +38,7 @@ import { canManageWarnings, getUserPreferences, hasPermission } from '@/utils/au
 import styles from './index.module.scss'
 
 const { TextArea } = Input
+const warningChangedEvent = 'warning-published-updated'
 
 type WarningFormValues = {
   title: string
@@ -233,6 +234,9 @@ const WarningList = () => {
       if (res.code === 0) {
         message.success(editingRecord ? '预警已更新' : res.message)
         setModalOpen(false)
+        if (payload.status === 'published') {
+          window.dispatchEvent(new Event(warningChangedEvent))
+        }
         await loadWarnings()
       } else {
         message.error(res.message)
@@ -249,6 +253,7 @@ const WarningList = () => {
       const res = await updateWarningStatus(record._id, status)
       if (res.code === 0) {
         message.success(res.message)
+        window.dispatchEvent(new Event(warningChangedEvent))
         await loadWarnings()
       } else {
         message.error(res.message)
@@ -269,6 +274,9 @@ const WarningList = () => {
         const res = await deleteWarning(record._id)
         if (res.code === 0) {
           message.success(res.message)
+          if (record.status === 'published') {
+            window.dispatchEvent(new Event(warningChangedEvent))
+          }
           await loadWarnings()
         } else {
           message.error(res.message)

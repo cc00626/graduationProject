@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register/index'
 import Layout from '@/layout'
+import DashBoard from '@/pages/DashBoard'
 import EmergencyDetail from '@/pages/EmergencyDetail'
 import RainMonitor from '@/pages/RainMonitor'
 import TyphoonTrack from '@/pages/TyphoonTrack'
@@ -10,7 +11,6 @@ import WarningPublish from '@/pages/WarningPublish'
 import SystemSetting from '@/pages/SystemSetting'
 import PermissionManagement from '@/pages/PermissionManagement'
 import RoleManagement from '@/pages/RoleManagement'
-import { getDefaultRoute } from '@/utils/auth'
 import { GuestOnlyRoute, PermissionRoute, ProtectedRoute } from './guards'
 
 const router = createBrowserRouter([
@@ -40,7 +40,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to={getDefaultRoute()} replace />,
+        element: <Navigate to="/dashboard" replace />,
+      },
+      {
+        path: '/dashboard',
+        element: <DashBoard />,
       },
       {
         path: '/monitor/rain',
@@ -75,12 +79,8 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: '/warning-publish',
-        element: <WarningPublish />,
-      },
-      {
-        path: '/warning-list',
-        element: <WarningList />,
+        path: '/history',
+        element: <Navigate to="/dashboard" replace />,
       },
       {
         path: '/emergency-detail/:id',

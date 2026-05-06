@@ -1,3 +1,24 @@
+.sider {
+  position: sticky !important;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  :global(.ant-layout-sider-children) {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  :global(.ant-menu) {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
 .logoArea {
   display: flex;
   align-items: center;

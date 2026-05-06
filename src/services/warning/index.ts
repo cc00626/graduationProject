@@ -68,12 +68,38 @@ type WarningListData = {
   pageSize: number
 }
 
+type WarningNotificationData = {
+  items: WarningRecord[]
+  unreadCount: number
+  total: number
+}
+
 export const createWarning = (data: WarningPayload) => {
   return request.post<ApiResponse<WarningRecord>, WarningPayload>('/warnings', data)
 }
 
 export const getWarnings = (params: WarningListParams = {}) => {
   return request.get<ApiResponse<WarningListData>>('/warnings', { params })
+}
+
+export const getLatestPublishedWarnings = (pageSize = 5) => {
+  return getWarnings({
+    status: 'published',
+    page: 1,
+    pageSize,
+  })
+}
+
+export const getWarningNotifications = (pageSize = 5) => {
+  return request.get<ApiResponse<WarningNotificationData>>('/warnings/notifications', {
+    params: { pageSize },
+  })
+}
+
+export const markWarningNotificationsRead = () => {
+  return request.patch<ApiResponse<{ warningNoticeReadAt: string }>, undefined>(
+    '/warnings/notifications/read',
+  )
 }
 
 export const updateWarning = (id: string, data: WarningPayload) => {

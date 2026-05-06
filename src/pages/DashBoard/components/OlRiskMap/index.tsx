@@ -10,6 +10,7 @@ import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { defaults as defaultControls } from 'ol/control'
 import { defaults as defaultInteractions } from 'ol/interaction'
+import { unByKey } from 'ol/Observable'
 import { Fill, Stroke, Style, Text as TextStyle, Circle as CircleStyle } from 'ol/style'
 import { fromLonLat } from 'ol/proj'
 import style from './index.module.scss'
@@ -29,25 +30,25 @@ type Props = {
 }
 
 const riskFillMap: Record<RiskLevel, string> = {
-  1: 'rgba(37, 112, 192, 0.74)',
-  2: 'rgba(39, 182, 176, 0.75)',
-  3: 'rgba(44, 208, 133, 0.82)',
+  1: 'rgba(22, 119, 255, 0.18)',
+  2: 'rgba(250, 173, 20, 0.26)',
+  3: 'rgba(245, 34, 45, 0.28)',
 }
 
-const strokeColor = 'rgba(138, 224, 255, 0.92)'
+const strokeColor = 'rgba(73, 103, 135, 0.72)'
 
 const makeDistrictStyle = (name: string, risk: RiskLevel, isFocused: boolean) =>
   new Style({
     fill: new Fill({ color: riskFillMap[risk] }),
     stroke: new Stroke({
-      color: isFocused ? '#e6fbff' : strokeColor,
-      width: isFocused ? 2.6 : 1.3,
+      color: isFocused ? '#1677ff' : strokeColor,
+      width: isFocused ? 2.4 : 1.2,
     }),
     text: new TextStyle({
       text: name,
       font: '12px "Microsoft YaHei", sans-serif',
-      fill: new Fill({ color: '#d8f7ff' }),
-      stroke: new Stroke({ color: 'rgba(2, 24, 51, 0.9)', width: 2.6 }),
+      fill: new Fill({ color: '#1f2d3d' }),
+      stroke: new Stroke({ color: 'rgba(255, 255, 255, 0.9)', width: 3 }),
       overflow: true,
     }),
     zIndex: isFocused ? 9 : 2,
@@ -57,17 +58,17 @@ const makeMarkerStyle = (value: number) =>
   new Style({
     image: new CircleStyle({
       radius: 6,
-      fill: new Fill({ color: 'rgba(120, 244, 255, 0.95)' }),
-      stroke: new Stroke({ color: '#ffffff', width: 1.2 }),
+      fill: new Fill({ color: 'rgba(22, 119, 255, 0.92)' }),
+      stroke: new Stroke({ color: '#ffffff', width: 1.5 }),
     }),
     text: new TextStyle({
       text: String(value),
       offsetY: -18,
       font: '700 11px Rajdhani, "Microsoft YaHei", sans-serif',
       padding: [3, 6, 3, 6],
-      fill: new Fill({ color: '#d9f6ff' }),
-      backgroundFill: new Fill({ color: 'rgba(12, 86, 178, 0.86)' }),
-      backgroundStroke: new Stroke({ color: 'rgba(122, 216, 255, 0.85)', width: 1 }),
+      fill: new Fill({ color: '#ffffff' }),
+      backgroundFill: new Fill({ color: 'rgba(22, 119, 255, 0.9)' }),
+      backgroundStroke: new Stroke({ color: 'rgba(255, 255, 255, 0.9)', width: 1 }),
     }),
     zIndex: 12,
   })
@@ -141,7 +142,7 @@ const OlRiskMap = ({ riskByDistrict, markers, className }: Props) => {
       setIsLoading(false)
     })
 
-    const handlePointerMove = (evt: MapBrowserEvent<PointerEvent>) => {
+    const handlePointerMove = (evt: MapBrowserEvent) => {
       const hit = map.forEachFeatureAtPixel(evt.pixel, feature => feature)
       const nextName = hit && hit.get('featureType') !== 'marker' ? (hit.get('name') as string) : null
 
@@ -153,7 +154,7 @@ const OlRiskMap = ({ riskByDistrict, markers, className }: Props) => {
       map.getTargetElement().style.cursor = nextName ? 'pointer' : 'default'
     }
 
-    map.on('pointermove' as any, handlePointerMove as any)
+    const pointerMoveKey = map.on('pointermove', handlePointerMove)
 
     const resizeObserver = new ResizeObserver(() => {
       map.updateSize()
@@ -162,7 +163,7 @@ const OlRiskMap = ({ riskByDistrict, markers, className }: Props) => {
 
     return () => {
       resizeObserver.disconnect()
-      map.un('pointermove' as any, handlePointerMove as any)
+      unByKey(pointerMoveKey)
       map.setTarget(undefined)
       mapRef.current = null
       districtLayerRef.current = null

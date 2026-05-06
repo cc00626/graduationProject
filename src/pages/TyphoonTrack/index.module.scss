@@ -8,6 +8,15 @@
   .mapCanvas {
     width: calc(100% - 480px);
     height: 100%;
+    background: #eef3f8;
+  }
+
+  .mapCanvas :global(.ol-viewport) {
+    background: #eef3f8;
+  }
+
+  :global(.weather-base-layer) {
+    filter: saturate(0.72) contrast(0.9) brightness(1.04);
   }
 
   .layerSwitch {
