@@ -60,6 +60,7 @@ type FilterValues = {
 }
 
 const typeOptions: Array<{ label: string; value: WarningType }> = [
+  { label: '高温', value: 'temperature' },
   { label: '暴雨', value: 'rain' },
   { label: '洪水', value: 'flood' },
   { label: '台风', value: 'typhoon' },

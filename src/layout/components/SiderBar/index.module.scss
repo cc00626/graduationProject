@@ -16,6 +16,28 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.52) transparent;
+  }
+
+  :global(.ant-menu::-webkit-scrollbar) {
+    width: 8px;
+  }
+
+  :global(.ant-menu::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  :global(.ant-menu::-webkit-scrollbar-thumb) {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.52);
+    background-clip: content-box;
+  }
+
+  :global(.ant-menu::-webkit-scrollbar-thumb:hover) {
+    background: rgba(203, 213, 225, 0.72);
+    background-clip: content-box;
   }
 }
 

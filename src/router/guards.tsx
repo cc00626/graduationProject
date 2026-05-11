@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
-import { Button, Result } from 'antd'
+import { Navigate, useLocation } from 'react-router-dom'
 import { GetCurrentUser } from '@/services/user'
 import {
   clearAuth,
@@ -60,6 +59,7 @@ export const PermissionRoute = ({
   children: ReactElement
   permission: string
 }) => {
+  const location = useLocation()
   const [checked, setChecked] = useState(() => hasPermission(permission))
   const [ready, setReady] = useState(() => hasPermission(permission))
 
@@ -106,15 +106,10 @@ export const PermissionRoute = ({
 
   if (!checked) {
     return (
-      <Result
-        status="403"
-        title="没有页面权限"
-        subTitle={`当前用户缺少 ${permission} 权限，请确认当前登录用户所属角色是否已保存该权限。`}
-        extra={
-          <Button type="primary" onClick={() => window.history.back()}>
-            返回上一页
-          </Button>
-        }
+      <Navigate
+        to="/403"
+        replace
+        state={{ from: location.pathname, permission }}
       />
     )
   }

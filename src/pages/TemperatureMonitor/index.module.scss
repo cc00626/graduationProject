@@ -1,0 +1,747 @@
+.mapContainer {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 160px);
+  min-height: 680px;
+  overflow: hidden;
+  background: #e8eef5;
+
+  .mapCanvas {
+    width: calc(100% - 480px);
+    height: 100%;
+  }
+
+  :global(.temperature-base-layer) {
+    filter: saturate(0.72) contrast(0.94) brightness(1.04);
+  }
+
+  :global(.temperature-heat-layer canvas) {
+    mix-blend-mode: multiply;
+    filter: saturate(1.16) contrast(1.08);
+  }
+
+  .layerSwitch,
+  .resetButton,
+  .legend,
+  .mapBadge,
+  .scaleBar {
+    position: absolute;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.93);
+    backdrop-filter: blur(12px);
+    border: 1px solid #dce5ee;
+    border-radius: 8px;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+  }
+
+  .layerSwitch {
+    top: 16px;
+    right: 496px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: calc(100% - 32px);
+    padding: 8px 12px;
+    font-size: 13px;
+
+    :global(.ant-checkbox-wrapper) {
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    :global(.ant-segmented) {
+      min-width: 236px;
+    }
+  }
+
+  .layerTitle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 10px;
+    color: #41516a;
+    font-weight: 800;
+    white-space: nowrap;
+    border-right: 1px solid #d8e1ea;
+  }
+
+  .monitorPanel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 70;
+    width: 480px;
+    height: 100%;
+    padding: 18px;
+    overflow-y: auto;
+    background: #f8fafc;
+    border-left: 1px solid #dce5ee;
+    box-shadow: -10px 0 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .panelHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+
+    span {
+      display: block;
+      margin-bottom: 4px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    h2 {
+      margin: 0 0 4px;
+      color: #152033;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+  }
+
+  .metricGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+
+    div {
+      min-width: 0;
+      padding: 12px;
+      background: #fbfdff;
+      border: 1px solid #e1eaf3;
+      border-radius: 6px;
+    }
+
+    span {
+      display: block;
+      margin-bottom: 6px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    strong {
+      color: #14213a;
+      font-size: 20px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+  }
+
+  .timelineControl,
+  .filterBlock,
+  .boxQueryBlock,
+  .detailCard {
+    margin-top: 12px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+  }
+
+  .panelSectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0 8px;
+    color: #172033;
+    font-weight: 700;
+  }
+
+  .controlTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: #64748b;
+    font-size: 12px;
+
+    strong {
+      color: #172033;
+      font-size: 14px;
+    }
+  }
+
+  .timelineActions {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .thresholdControl {
+    margin-top: 10px;
+
+    span {
+      display: block;
+      margin-bottom: 2px;
+      color: #475569;
+      font-size: 12px;
+    }
+
+    :global(.ant-slider) {
+      margin: 8px 4px 0;
+    }
+  }
+
+  .boxActionRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .boxHint {
+    margin-top: 9px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .queryMetricGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+
+    div {
+      min-width: 0;
+      padding: 8px;
+      background: #f8fafc;
+      border: 1px solid #e3ebf3;
+      border-radius: 6px;
+    }
+
+    span,
+    strong {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 11px;
+    }
+
+    strong {
+      margin-top: 4px;
+      color: #172033;
+      font-size: 15px;
+    }
+  }
+
+  .queryList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+    max-height: 180px;
+    overflow-y: auto;
+
+    button {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 8px;
+      color: #243246;
+      text-align: left;
+      background: #fff;
+      border: 1px solid #e3ebf3;
+      border-radius: 6px;
+      cursor: pointer;
+
+      &:hover {
+        border-color: #f08a32;
+      }
+    }
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    b {
+      color: #e5482f;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+  }
+
+  .activeReadout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+
+    div {
+      min-width: 0;
+    }
+
+    span,
+    small {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    span {
+      color: #23324a;
+      font-weight: 700;
+    }
+
+    small {
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    strong {
+      color: #e5482f;
+      font-size: 26px;
+      line-height: 1;
+    }
+  }
+
+  .detailCard {
+    margin-bottom: 0;
+  }
+
+  .detailHead {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #172033;
+    font-weight: 800;
+
+    span:last-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .detailGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+
+    div {
+      min-width: 0;
+      padding: 9px;
+      background: #f8fafc;
+      border-radius: 6px;
+    }
+
+    span,
+    b {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    b {
+      margin-top: 4px;
+      color: #172033;
+      font-size: 13px;
+    }
+  }
+
+  .railHead,
+  .legendTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid #e2e8f0;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      color: #52627a;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 19px;
+      white-space: nowrap;
+    }
+  }
+
+  .stationList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stationItem {
+    display: grid;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    padding: 9px;
+    text-align: left;
+    background: #fff;
+    border: 1px solid #e3ebf3;
+    border-radius: 6px;
+    cursor: pointer;
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease,
+      border-color 0.18s ease;
+
+    &:hover {
+      border-color: #f08a32;
+      box-shadow: 0 8px 18px rgba(240, 138, 50, 0.18);
+      transform: translateY(-2px);
+    }
+
+    small {
+      min-width: 0;
+      overflow: hidden;
+      color: #64748b;
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .stationMeta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+
+    b {
+      min-width: 0;
+      overflow: hidden;
+      color: #172033;
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    em {
+      color: #e5482f;
+      font-style: normal;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+  }
+
+  .stationTrack {
+    display: block;
+    height: 8px;
+    overflow: hidden;
+    background: #edf2f7;
+    border-radius: 999px;
+
+    i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+    }
+  }
+
+  .transectChart {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: end;
+    gap: 10px;
+    height: 142px;
+
+    button {
+      display: grid;
+      grid-template-rows: 1fr auto auto;
+      justify-items: center;
+      gap: 5px;
+      height: 100%;
+      min-width: 0;
+      padding: 0;
+      color: #475569;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+    }
+
+    i {
+      align-self: end;
+      display: block;
+      width: 18px;
+      min-height: 18px;
+      background: linear-gradient(180deg, #e84b3c, #f2c94c 55%, #35b96f);
+      border-radius: 999px 999px 3px 3px;
+      box-shadow: 0 8px 14px rgba(232, 75, 60, 0.18);
+    }
+
+    b {
+      color: #152033;
+      font-size: 12px;
+    }
+
+    span {
+      width: 100%;
+      overflow: hidden;
+      font-size: 11px;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .districtList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    button {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 46px auto;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 8px;
+      color: #243246;
+      text-align: left;
+      background: #fff;
+      border: 1px solid #e3ebf3;
+      border-radius: 6px;
+      cursor: pointer;
+
+      &:hover {
+        border-color: #f08a32;
+      }
+    }
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    i {
+      display: block;
+      height: 7px;
+      border-radius: 999px;
+    }
+
+    b {
+      font-size: 12px;
+      white-space: nowrap;
+    }
+  }
+
+  .legend {
+    bottom: 16px;
+    left: 16px;
+    width: 120px;
+    padding: 11px;
+    font-size: 12px;
+  }
+
+  .legendTitle {
+    justify-content: center;
+    margin-bottom: 8px;
+    color: #172033;
+    font-weight: 900;
+  }
+
+  .thermometerScale {
+    display: grid;
+    grid-template-rows: auto 132px auto;
+    gap: 5px;
+    justify-items: center;
+    margin-bottom: 9px;
+    color: #64748b;
+    font-size: 11px;
+
+    i {
+      display: block;
+      width: 18px;
+      height: 100%;
+      background: linear-gradient(180deg, #e84b3c, #f08a32, #f2c94c, #35b96f, #16b9d4, #2563eb);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 999px;
+    }
+  }
+
+  .legendContent {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .legendItem {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    color: #475569;
+
+    span {
+      width: 18px;
+      height: 16px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 3px;
+    }
+  }
+
+  .mapBadge {
+    left: 154px;
+    bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .scaleBar {
+    left: calc((100% - 480px) / 2);
+    bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    color: #475569;
+    font-size: 12px;
+    transform: translateX(-50%);
+  }
+
+  .resetButton {
+    top: 72px;
+    left: 16px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  .tooltip {
+    position: absolute;
+    z-index: 2000;
+    display: none;
+    min-width: 230px;
+    max-width: 320px;
+    padding: 10px 12px;
+    color: #334155;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid #dce5ee;
+    border-radius: 6px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.2);
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  :global(.temperature-tooltip-title) {
+    margin-bottom: 4px;
+    color: #102033;
+    font-weight: 800;
+  }
+
+  .dragBox {
+    background: rgba(232, 75, 60, 0.08);
+    border: 2px solid #e84b3c;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 1320px) {
+    .mapBadge,
+    .scaleBar {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .mapCanvas {
+      width: 100%;
+      height: 58%;
+    }
+
+    .monitorPanel {
+      top: auto;
+      bottom: 0;
+      width: 100%;
+      height: 42%;
+      border-top: 1px solid #dce5ee;
+      border-left: 0;
+    }
+
+    .metricGrid,
+    .detailGrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .legend {
+      left: 16px;
+      right: auto;
+      bottom: calc(42% + 16px);
+    }
+
+    .resetButton {
+      top: 64px;
+    }
+  }
+
+  @media (max-width: 760px) {
+    min-height: 820px;
+
+    .layerSwitch {
+      right: 16px;
+      left: auto;
+      flex-wrap: wrap;
+    }
+
+    .overviewPanel {
+      top: 116px;
+    }
+
+    .metricGrid,
+    .queryMetricGrid,
+    .detailGrid,
+    .activeReadout {
+      grid-template-columns: 1fr;
+    }
+
+    .timelineActions {
+      grid-template-columns: 34px minmax(190px, 1fr) 34px;
+      overflow-x: auto;
+    }
+
+    .legend {
+      display: none;
+    }
+  }
+}

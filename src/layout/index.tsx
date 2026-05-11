@@ -18,11 +18,11 @@ import {
 import type { MenuProps } from 'antd'
 import {
   AlertOutlined,
-  AppstoreOutlined,
   BellOutlined,
   CloudOutlined,
   DashboardOutlined,
   DownOutlined,
+  FireOutlined,
   FullscreenExitOutlined,
   FullscreenOutlined,
   GlobalOutlined,
@@ -30,9 +30,7 @@ import {
   RadarChartOutlined,
   ReloadOutlined,
   SearchOutlined,
-  SafetyCertificateOutlined,
   SettingOutlined,
-  TeamOutlined,
   UpOutlined,
   UserOutlined,
 } from '@ant-design/icons'
@@ -55,6 +53,7 @@ const { Paragraph } = Typography
 const warningChangedEvent = 'warning-published-updated'
 
 const warningTypeText: Record<WarningType, string> = {
+  temperature: '高温',
   rain: '暴雨',
   flood: '洪水',
   typhoon: '台风',
@@ -142,62 +141,58 @@ const AppLayout = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken()
 
-  const menuItems = [
-    {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: '综合看板',
-    },
-    {
-      key: '/monitor',
-      icon: <GlobalOutlined />,
-      label: '实时态势',
-      children: [
-        ...(hasPermission('page:monitor:rain', authUser)
-          ? [
-              {
-                key: '/monitor/rain',
-                label: '降水监测',
-              },
-            ]
-          : []),
-        ...(hasPermission('page:monitor:typhoon', authUser)
-          ? [
-              {
-                key: '/monitor/typhoon',
-                label: '台风路径',
-              },
-            ]
-          : []),
-        ...(hasPermission('page:monitor:warning', authUser)
-          ? [
-              {
-                key: '/monitor/warning',
-                label: '预警发布',
-              },
-            ]
-          : []),
-        ...(hasPermission('page:monitor:warning-list', authUser)
-          ? [
-              {
-                key: '/monitor/warning-list',
-                label: '预警列表',
-              },
-            ]
-          : []),
-      ],
-    },
-    {
-      key: '/history',
-      icon: <AppstoreOutlined />,
-      label: '历史回溯',
-    },
-    ...(hasPermission('page:setting', authUser)
+  const monitorMenuItems = [
+    ...(hasPermission('page:monitor:rain', authUser)
       ? [
           {
-            key: '/setting',
-            icon: <SettingOutlined />,
-            label: '系统配置',
+            key: '/monitor/rain',
+            label: '降水监测',
+          },
+        ]
+      : []),
+    ...(hasPermission('page:monitor:temperature', authUser)
+      ? [
+          {
+            key: '/monitor/temperature',
+            label: '温度监测',
+          },
+        ]
+      : []),
+    ...(hasPermission('page:monitor:typhoon', authUser)
+      ? [
+          {
+            key: '/monitor/typhoon',
+            label: '台风路径',
+          },
+        ]
+      : []),
+  ]
+
+  const warningMenuItems = [
+    ...(hasPermission('page:monitor:warning-list', authUser)
+      ? [
+          {
+            key: '/monitor/warning-list',
+            label: '预警列表',
+          },
+        ]
+      : []),
+    ...(hasPermission('page:monitor:warning', authUser)
+      ? [
+          {
+            key: '/monitor/warning',
+            label: '预警发布',
+          },
+        ]
+      : []),
+  ]
+
+  const systemMenuItems = [
+    ...(hasPermission('page:role', authUser)
+      ? [
+          {
+            key: '/role',
+            label: '角色管理',
           },
         ]
       : []),
@@ -205,17 +200,53 @@ const AppLayout = () => {
       ? [
           {
             key: '/permission',
-            icon: <SafetyCertificateOutlined />,
             label: '权限管理',
           },
         ]
       : []),
-    ...(hasPermission('page:role', authUser)
+    ...(hasPermission('page:setting', authUser)
       ? [
           {
-            key: '/role',
-            icon: <TeamOutlined />,
-            label: '角色管理',
+            key: '/setting',
+            label: '系统配置',
+          },
+        ]
+      : []),
+  ]
+
+  const menuItems = [
+    {
+      key: '/dashboard',
+      icon: <DashboardOutlined />,
+      label: '综合看板',
+    },
+    ...(monitorMenuItems.length
+      ? [
+          {
+            key: '/monitor',
+            icon: <GlobalOutlined />,
+            label: '实时监测',
+            children: monitorMenuItems,
+          },
+        ]
+      : []),
+    ...(warningMenuItems.length
+      ? [
+          {
+            key: '/warning',
+            icon: <AlertOutlined />,
+            label: '预警管理',
+            children: warningMenuItems,
+          },
+        ]
+      : []),
+    ...(systemMenuItems.length
+      ? [
+          {
+            key: '/system',
+            icon: <SettingOutlined />,
+            label: '系统管理',
+            children: systemMenuItems,
           },
         ]
       : []),
@@ -278,6 +309,7 @@ const AppLayout = () => {
   const currentPageTitle = useMemo(() => {
     if (location.pathname.startsWith('/dashboard')) return '综合看板'
     if (location.pathname.startsWith('/monitor/rain')) return '降水监测'
+    if (location.pathname.startsWith('/monitor/temperature')) return '温度监测'
     if (location.pathname.startsWith('/monitor/typhoon')) return '台风路径'
     if (location.pathname.startsWith('/monitor/warning-list')) return '预警列表'
     if (location.pathname.startsWith('/monitor/warning')) return '预警发布'
@@ -301,6 +333,12 @@ const AppLayout = () => {
           icon: <CloudOutlined />,
           label: '降水',
           visible: hasPermission('page:monitor:rain', authUser),
+        },
+        {
+          key: '/monitor/temperature',
+          icon: <FireOutlined />,
+          label: '温度',
+          visible: hasPermission('page:monitor:temperature', authUser),
         },
         {
           key: '/monitor/typhoon',

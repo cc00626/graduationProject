@@ -198,45 +198,10 @@
   }
 }
 
-.previewGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-
-  > div {
-    min-width: 0;
-    padding: 14px;
-    border: 1px solid #e6edf5;
-    border-radius: 8px;
-    background: #fbfdff;
-  }
-
-  span {
-    display: block;
-    margin-bottom: 8px;
-    color: #64748b;
-    font-size: 12px;
-  }
-
-  strong {
-    color: #172033;
-    font-size: 15px;
-  }
-}
-
-.previewWide {
-  grid-column: 1 / -1;
-}
-
 .tagCloud {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-}
-
-.roleNotice {
-  margin-bottom: 14px;
 }
 
 @media (max-width: 1180px) {
@@ -273,8 +238,7 @@
 
   .formGrid,
   .formGridThree,
-  .layerGroup,
-  .previewGrid {
+  .layerGroup {
     grid-template-columns: 1fr;
   }
 }

@@ -145,6 +145,17 @@ const shouldShowWarning = (record: WarningRecord, level: 'all' | 'medium' | 'hig
   return record.level === 'high'
 }
 
+const windColorScale = [
+  'rgba(46, 132, 205, 0.5)',
+  'rgba(36, 157, 196, 0.5)',
+  'rgba(44, 174, 142, 0.5)',
+  'rgba(120, 190, 92, 0.5)',
+  'rgba(230, 196, 64, 0.5)',
+  'rgba(232, 146, 58, 0.5)',
+  'rgba(218, 94, 65, 0.5)',
+  'rgba(190, 66, 78, 0.5)',
+]
+
 const buildWindPolygon = (center: { lng: number; lat: number }, circle: WindCircle) => {
   const coordinates: number[][] = []
   for (let angle = 0; angle <= 360; angle += 8) {
@@ -161,10 +172,10 @@ const buildWindPolygon = (center: { lng: number; lat: number }, circle: WindCirc
 
 const makeWindCircleStyle = (color: string, opacity: number) =>
   new Style({
-    fill: new Fill({ color: color.replace('OPACITY', String(opacity)) }),
+    fill: new Fill({ color: color.replace('OPACITY', String(Math.min(opacity + 0.08, 0.34))) }),
     stroke: new Stroke({
-      color: color.replace('OPACITY', String(Math.min(opacity + 0.3, 0.78))),
-      width: 2,
+      color: color.replace('OPACITY', String(Math.min(opacity + 0.46, 0.9))),
+      width: 3.5,
     }),
   })
 
@@ -188,13 +199,32 @@ const MiniIntensityChart = ({ data }: { data: TyphoonPayload['intensity'] }) => 
   const height = 120
   const wind = data.map(item => item.windSpeed)
   const pressure = data.map(item => item.pressure)
+  const windPoints = chartPoints(wind, width, 92)
 
   return (
     <div className={styles.chartBox}>
       <svg viewBox={`0 0 ${width} ${height}`} className={styles.chartSvg}>
         <line x1="0" y1="104" x2={width} y2="104" stroke="#e2e8f0" />
-        <polyline points={chartPoints(wind, width, 92)} fill="none" stroke="#ff4d4f" strokeWidth="3" />
-        <polyline points={chartPoints(pressure, width, 92, true)} fill="none" stroke="#1677ff" strokeWidth="3" />
+        <polyline
+          points={windPoints}
+          fill="none"
+          stroke="#ff2d20"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="5"
+        />
+        <polyline
+          points={chartPoints(pressure, width, 92, true)}
+          fill="none"
+          stroke="#1677ff"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="3"
+        />
+        {windPoints.split(' ').map((point, index) => {
+          const [x, y] = point.split(',').map(Number)
+          return <circle key={`${data[index].time}-wind`} cx={x} cy={y} r="4.5" fill="#ff2d20" stroke="#fff" strokeWidth="2" />
+        })}
         {data.map((item, index) => {
           const x = data.length === 1 ? width / 2 : (index / (data.length - 1)) * width
           return <circle key={item.forecastHour} cx={x} cy="104" r={item.isForecast ? 3 : 4} fill={item.isForecast ? '#94a3b8' : '#172033'} />
@@ -298,9 +328,10 @@ const TyphoonTrack = () => {
       if (data && mapInstance.current) {
         windLayerRef.current = new WindLayer(data, {
           windOptions: {
-            colorScale: ['#2468b4', '#3c9dc2', '#80cdc1', '#97daa8', '#c6e7b5', '#fff29f', '#fcac63', '#f36343', '#cb3644'],
-            velocityScale: 0.005,
-            paths: 2400,
+            colorScale: windColorScale,
+            velocityScale: 0.007,
+            paths: 3600,
+            width: 3.4,
             age: 60,
             fieldOptions: { wrapX: true },
           },

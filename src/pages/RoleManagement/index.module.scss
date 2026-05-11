@@ -1,5 +1,15 @@
 .page {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header,
+.tableSection {
+  border: 1px solid #e6edf5;
+  border-radius: 8px;
+  background: #fff;
 }
 
 .header {
@@ -7,7 +17,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  padding: 18px 20px;
 }
 
 .header h2 {
@@ -17,67 +27,56 @@
   line-height: 1.35;
 }
 
-.rbacLayout {
-  display: grid;
-  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
+.tableSection {
+  overflow: hidden;
 }
 
-.rolePanel,
-.userPanel {
-  border-radius: 8px;
-}
-
-.rolePanel :global(.ant-card-body) {
-  padding: 0;
-}
-
-.roleRow,
-.selectedRoleRow {
-  cursor: pointer;
-}
-
-.roleRow:hover td {
-  background: #f8fafc !important;
-}
-
-.selectedRoleRow td {
-  background: #eaf3ff !important;
-}
-
-.roleItem {
+.tableToolbar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 2px 0;
-
-  div {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  strong {
-    color: #17233d;
-    font-size: 15px;
-  }
+  gap: 16px;
+  min-height: 56px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e6edf5;
+  background: #fbfdff;
 }
 
-.detailColumn {
-  display: grid;
-  gap: 16px;
+.tableToolbar strong {
+  color: #17233d;
+  font-size: 15px;
+}
+
+.searchInput {
+  width: 320px;
+}
+
+.mutedText {
+  color: #94a3b8;
+}
+
+.page :global(.ant-table-thead > tr > th) {
+  color: #475569;
+  font-weight: 600;
+  background: #f8fafc;
+}
+
+.page :global(.ant-table-tbody > tr:hover > td) {
+  background: #fbfdff;
+}
+
+.page :global(.ant-pagination) {
+  margin-right: 16px;
 }
 
 @media (max-width: 760px) {
-  .header {
+  .header,
+  .tableToolbar {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .rbacLayout {
-    grid-template-columns: 1fr;
+  .searchInput {
+    width: 100%;
   }
 }

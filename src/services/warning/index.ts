@@ -1,7 +1,7 @@
 import request from '@/services/request'
 import type { BufferPoiItem } from '@/services/rain'
 
-export type WarningType = 'rain' | 'flood' | 'typhoon'
+export type WarningType = 'rain' | 'flood' | 'typhoon' | 'temperature'
 export type WarningLevel = 'low' | 'medium' | 'high'
 export type WarningStatus = 'draft' | 'published' | 'resolved' | 'archived'
 

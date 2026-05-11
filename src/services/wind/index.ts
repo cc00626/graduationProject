@@ -42,6 +42,28 @@ export type WeatherNowResponse = {
   data?: WeatherNowPayload
 }
 
+export type CrawledForecastItem = {
+  day: string
+  weather: string
+  temperatureText: string
+  high: number | null
+  low: number | null
+  wind: string
+}
+
+export type CrawledForecastPayload = {
+  source: string
+  sourceUrl: string
+  crawledAt: string
+  city: string
+  items: CrawledForecastItem[]
+}
+
+export type CrawledForecastResponse = {
+  success: boolean
+  data: CrawledForecastPayload
+}
+
 export async function getWindPoll(lastTime?: string) {
   return request.get('/poll', {
     params: lastTime ? { lastTime } : {},
@@ -64,6 +86,12 @@ export async function getGuangzhouWindData() {
   return request.get('/weather/guangzhou/wind', {
     timeout: 40000,
   }) as Promise<ApiResponse<unknown>>
+}
+
+export async function getGuangzhouForecastCrawl() {
+  return request.get('/weather/guangzhou/forecast-crawl', {
+    timeout: 40000,
+  }) as Promise<CrawledForecastResponse>
 }
 
 export type HistoryQuery = {

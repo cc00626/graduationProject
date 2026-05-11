@@ -3,78 +3,93 @@
   width: 100%;
   padding: 32px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top left, rgba(32, 178, 170, 0.22), transparent 32%),
-    radial-gradient(circle at bottom right, rgba(22, 119, 255, 0.28), transparent 30%),
-    linear-gradient(135deg, #07111f 0%, #0d1f35 48%, #102b47 100%);
+  justify-content: center;
+  background: #f5f7fb;
 }
 
 .loginBox {
-  position: relative;
-  z-index: 1;
-  width: min(1080px, 100%);
+  width: min(960px, 100%);
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(360px, 460px);
-  gap: 32px;
-  align-items: stretch;
+  grid-template-columns: minmax(320px, 1fr) 400px;
+  gap: 48px;
+  align-items: center;
 }
 
 .heroPanel {
   display: flex;
   flex-direction: column;
+  gap: 28px;
+}
+
+.brandMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #17233d;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.brandMark :global(.anticon) {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  padding: 48px 40px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 60px rgba(3, 10, 20, 0.35);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #fff;
+  background: #1677ff;
 }
 
 .badge {
-  width: fit-content;
-  margin-bottom: 20px;
-  padding: 6px 14px;
-  border: 1px solid rgba(125, 211, 252, 0.35);
-  border-radius: 999px;
-  background: rgba(125, 211, 252, 0.12);
-  color: #d6f3ff !important;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  display: block;
+  margin-bottom: 14px;
+  color: #1677ff !important;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
 }
 
 .title {
-  margin: 0 0 16px !important;
-  color: #fff !important;
-  font-size: clamp(32px, 4vw, 44px) !important;
-  line-height: 1.15 !important;
+  max-width: 520px;
+  margin: 0 0 14px !important;
+  color: #17233d !important;
+  font-size: 38px !important;
+  line-height: 1.18 !important;
 }
 
 .subtitle {
   max-width: 460px;
-  color: rgba(231, 240, 255, 0.78) !important;
+  color: #60708a !important;
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 1.9;
 }
 
 .formCard {
-  padding: 32px;
-  border-radius: 28px;
-  background: rgba(248, 251, 255, 0.96);
-  box-shadow: 0 28px 60px rgba(4, 18, 38, 0.24);
+  padding: 34px;
+  border: 1px solid #e3ebf3;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 20px 48px rgba(22, 35, 61, 0.08);
 }
 
 .formHeader {
-  margin-bottom: 24px;
+  margin-bottom: 22px;
+}
+
+.formEyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #1677ff !important;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
 }
 
 .formTitle {
   margin: 0 0 8px !important;
-  color: #10243f !important;
+  color: #17233d !important;
 }
 
 .formHint {
@@ -89,23 +104,21 @@
   }
 
   :global(.ant-input-affix-wrapper) {
-    height: 48px;
-    border-radius: 14px;
-    border-color: #d8e2f0;
+    height: 46px;
+    border-radius: 8px;
+    border-color: #d9e4f0;
     box-shadow: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   :global(.ant-input-affix-wrapper:hover),
   :global(.ant-input-affix-wrapper-focused) {
     border-color: #1677ff;
-    box-shadow: 0 0 0 4px rgba(22, 119, 255, 0.12);
-    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1);
   }
 }
 
 .formItem {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .input {
@@ -114,7 +127,7 @@
 
 .actionRow {
   margin-bottom: 0;
-  padding-top: 8px;
+  padding-top: 4px;
 }
 
 .actionGroup {
@@ -125,33 +138,36 @@
 .secondaryButton {
   width: 100%;
   height: 46px;
-  border-radius: 14px;
-  font-weight: 600;
+  border-radius: 8px;
+  font-weight: 700;
 }
 
 .primaryButton {
-  box-shadow: 0 12px 24px rgba(22, 119, 255, 0.24);
+  box-shadow: 0 10px 20px rgba(22, 119, 255, 0.16);
 }
 
 .secondaryButton {
-  border-color: #c8d5e6;
+  border-color: #d9e4f0;
   color: #24415f;
-  background: #f7f9fc;
+  background: #fff;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 860px) {
   .loginContainer {
-    padding: 20px;
+    align-items: flex-start;
+    padding: 24px 16px;
   }
 
   .loginBox {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 22px;
   }
 
-  .heroPanel,
+  .title {
+    font-size: 30px !important;
+  }
+
   .formCard {
     padding: 24px;
-    border-radius: 24px;
   }
 }

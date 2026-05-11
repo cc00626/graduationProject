@@ -53,6 +53,7 @@ const SiderBar = ({
         theme={menuTheme}
         items={items}
         selectedKeys={selectedKeys}
+        defaultOpenKeys={['/monitor', '/warning', '/system']}
         onClick={onMenuClick}
       />
     </Sider>

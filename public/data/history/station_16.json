@@ -7,10 +7,10 @@
         "id": "GZ-NS-01",
         "name": "南沙港站",
         "district": "南沙区",
-        "wind_speed": 35.3,
-        "rainfall": 70.8,
-        "temperature": "26.4",
-        "status": "danger",
+        "wind_speed": 15.7,
+        "rainfall": 17.3,
+        "temperature": "32.7",
+        "status": "normal",
         "update_time": "2026-04-16 16:00"
       },
       "geometry": {
@@ -27,10 +27,10 @@
         "id": "GZ-CH-02",
         "name": "从化站",
         "district": "从化区",
-        "wind_speed": 35.2,
-        "rainfall": 71.1,
-        "temperature": "26.4",
-        "status": "danger",
+        "wind_speed": 13.2,
+        "rainfall": 29.9,
+        "temperature": "32.1",
+        "status": "normal",
         "update_time": "2026-04-16 16:00"
       },
       "geometry": {
@@ -47,10 +47,10 @@
         "id": "GZ-PY-03",
         "name": "番禺站",
         "district": "番禺区",
-        "wind_speed": 34.1,
-        "rainfall": 69.9,
-        "temperature": "26.4",
-        "status": "danger",
+        "wind_speed": 13.4,
+        "rainfall": 22,
+        "temperature": "34.2",
+        "status": "warning",
         "update_time": "2026-04-16 16:00"
       },
       "geometry": {
@@ -67,10 +67,10 @@
         "id": "GZ-BY-04",
         "name": "白云站",
         "district": "白云区",
-        "wind_speed": 35.5,
-        "rainfall": 70.3,
-        "temperature": "26.4",
-        "status": "danger",
+        "wind_speed": 15.7,
+        "rainfall": 19.7,
+        "temperature": "33.7",
+        "status": "warning",
         "update_time": "2026-04-16 16:00"
       },
       "geometry": {
@@ -78,6 +78,146 @@
         "coordinates": [
           113.19,
           23.278
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-LW-05",
+        "name": "荔湾芳村站",
+        "district": "荔湾区",
+        "wind_speed": 1.7,
+        "rainfall": 9.1,
+        "temperature": "35.5",
+        "status": "danger",
+        "update_time": "2026-04-16 16:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.23,
+          23.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-YX-06",
+        "name": "越秀公园站",
+        "district": "越秀区",
+        "wind_speed": 1.6,
+        "rainfall": 8.6,
+        "temperature": "35.9",
+        "status": "danger",
+        "update_time": "2026-04-16 16:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.27,
+          23.14
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-TH-07",
+        "name": "天河珠江新城站",
+        "district": "天河区",
+        "wind_speed": 1.9,
+        "rainfall": 8.1,
+        "temperature": "36.2",
+        "status": "danger",
+        "update_time": "2026-04-16 16:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.33,
+          23.12
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-HZ-08",
+        "name": "海珠琶洲站",
+        "district": "海珠区",
+        "wind_speed": 2.3,
+        "rainfall": 9.6,
+        "temperature": "34.8",
+        "status": "warning",
+        "update_time": "2026-04-16 16:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.38,
+          23.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-HP-09",
+        "name": "黄埔科学城站",
+        "district": "黄埔区",
+        "wind_speed": 2.2,
+        "rainfall": 9,
+        "temperature": "35.1",
+        "status": "danger",
+        "update_time": "2026-04-16 16:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.47,
+          23.17
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-HD-10",
+        "name": "花都湖站",
+        "district": "花都区",
+        "wind_speed": 2.1,
+        "rainfall": 11.4,
+        "temperature": "33.5",
+        "status": "warning",
+        "update_time": "2026-04-16 16:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.22,
+          23.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "GZ-ZC-11",
+        "name": "增城荔城站",
+        "district": "增城区",
+        "wind_speed": 1.8,
+        "rainfall": 10.4,
+        "temperature": "34.1",
+        "status": "warning",
+        "update_time": "2026-04-16 16:00"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.82,
+          23.27
         ]
       }
     }

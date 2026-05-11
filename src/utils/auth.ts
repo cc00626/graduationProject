@@ -1,11 +1,12 @@
 const TOKEN_KEY = 'token'
 const USER_KEY = 'user'
+const ACCOUNT_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]{3,19}$/
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   defaultDistrict: '全市',
   warningLevel: 'all',
   refreshInterval: 5,
-  enabledLayers: ['rain', 'wind', 'warning'],
+  enabledLayers: ['rain', 'temp', 'wind', 'warning'],
   autoOpenWarningPanel: true,
 }
 
@@ -45,6 +46,7 @@ const BUILTIN_ROLE_PERMISSIONS: Record<string, string[]> = {
   admin: [
     'page:dashboard',
     'page:monitor:rain',
+    'page:monitor:temperature',
     'page:monitor:typhoon',
     'page:monitor:warning',
     'page:monitor:warning-list',
@@ -58,6 +60,7 @@ const BUILTIN_ROLE_PERMISSIONS: Record<string, string[]> = {
   user: [
     'page:dashboard',
     'page:monitor:rain',
+    'page:monitor:temperature',
     'page:monitor:typhoon',
     'page:monitor:warning-list',
     'page:history',
@@ -103,6 +106,7 @@ export const getDefaultRoute = (user: AuthUser | null = getAuthUser()) => {
   const candidates = [
     ['page:dashboard', '/dashboard'],
     ['page:monitor:rain', '/monitor/rain'],
+    ['page:monitor:temperature', '/monitor/temperature'],
     ['page:monitor:typhoon', '/monitor/typhoon'],
     ['page:monitor:warning-list', '/monitor/warning-list'],
     ['page:monitor:warning', '/monitor/warning'],
@@ -115,6 +119,32 @@ export const getDefaultRoute = (user: AuthUser | null = getAuthUser()) => {
 }
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY)
+
+export const normalizeAccountInput = (account: string) => account.trim().toLowerCase()
+
+export const validateAccountText = (account: string) => {
+  if (!account.trim()) {
+    return '请输入用户名'
+  }
+
+  if (!ACCOUNT_PATTERN.test(normalizeAccountInput(account))) {
+    return '账号需为4-20位，以字母开头，只能包含字母、数字和下划线'
+  }
+
+  return ''
+}
+
+export const validatePasswordText = (password: string) => {
+  if (!password) {
+    return '请输入密码'
+  }
+
+  if (password.length < 6 || password.length > 32) {
+    return '密码长度需为6-32位'
+  }
+
+  return ''
+}
 
 export const getAuthUser = (): AuthUser | null => {
   const user = localStorage.getItem(USER_KEY)

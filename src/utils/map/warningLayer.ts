@@ -35,6 +35,7 @@ const warningLevelText: Record<WarningLevel, string> = {
 }
 
 const warningTypeText: Record<WarningType, string> = {
+  temperature: '高温',
   rain: '暴雨',
   flood: '洪涝',
   typhoon: '台风',

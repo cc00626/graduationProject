@@ -78,6 +78,7 @@ const defaultFormItemOrder: FormItemKey[] = [
   'actions',
 ]
 const formItemOrderStorageKey = 'warning-publish-form-item-order'
+const warningDraftStorageKey = 'warning-publish-local-draft'
 const warningChangedEvent = 'warning-published-updated'
 
 type SortablePanelProps = {
@@ -97,6 +98,23 @@ type SortableFormItemProps = {
 }
 
 const defenseAdviceTemplates: Record<WarningType, Record<WarningLevel, string[]>> = {
+  temperature: {
+    low: [
+      '关注高温天气变化，提醒公众减少午后长时间户外活动。',
+      '学校、养老机构和户外作业单位做好防暑降温和补水提醒。',
+      '加强电力、供水和医疗急救保障，关注重点人群健康状况。',
+    ],
+    medium: [
+      '建议户外作业单位调整高温时段作业安排，落实轮换休息和防暑物资。',
+      '提醒公众避免午后高温时段剧烈运动，老人、儿童和慢性病患者减少外出。',
+      '加强城市运行保障，关注用电负荷、供水压力和中暑救治准备。',
+    ],
+    high: [
+      '对露天作业、建筑工地和大型户外活动采取限时、暂停或错峰措施。',
+      '组织社区、学校、养老机构加强重点人群巡查，及时处置中暑和热射病风险。',
+      '电力、供水、医疗和应急部门加强值守，做好持续高温下的保障和救援准备。',
+    ],
+  },
   typhoon: {
     low: [
       '密切关注台风路径变化，提前检查门窗、广告牌和临时构筑物。',
@@ -151,6 +169,7 @@ const defenseAdviceTemplates: Record<WarningType, Record<WarningLevel, string[]>
 }
 
 const typeNameMap: Record<WarningType, string> = {
+  temperature: '高温',
   rain: '暴雨',
   flood: '洪水',
   typhoon: '台风',
@@ -175,6 +194,7 @@ type TyphoonWarningState = {
 }
 
 type LocationState = {
+  source?: 'rain' | 'typhoon' | 'temperature'
   center?: number[]
   radius?: number
   analysis?: {
@@ -182,6 +202,12 @@ type LocationState = {
     avg?: number
     max?: number
     risk?: string
+    min?: number
+    hotCount?: number
+    threshold?: number
+    source?: string
+    location?: string
+    stations?: unknown[]
   }
   pois?: BufferPoiItem[]
   typhoonWarning?: TyphoonWarningState
@@ -196,6 +222,14 @@ type WarningFormValues = {
   description: string
   publisher?: string
   typhoonNo?: string
+}
+
+type LocalWarningDraft = Partial<WarningFormValues> & {
+  sourceMode?: 'rain' | 'typhoon' | 'temperature'
+  linkedCenter?: number[]
+  linkedAnalysis?: WarningPayload['analysis']
+  linkedPois?: BufferPoiItem[]
+  savedAt?: string
 }
 
 type TyphoonListItem = {
@@ -242,6 +276,7 @@ type TyphoonPathPayload = {
 }
 
 const typeOptions: Array<{ label: string; value: WarningType }> = [
+  { label: '高温', value: 'temperature' },
   { label: '暴雨', value: 'rain' },
   { label: '洪水', value: 'flood' },
   { label: '台风', value: 'typhoon' },
@@ -301,6 +336,10 @@ const buildWarningDescription = (
   ].filter(Boolean)
 
   const analysis = context?.analysis
+  const temperatureSummary =
+    type === 'temperature' && analysis
+      ? `监测分析：最高温度${analysis.max ?? '-'}°C，平均温度${analysis.avg ?? '-'}°C，最低温度${analysis.min ?? '-'}°C，达到高温阈值站点${analysis.hotCount ?? analysis.count ?? 0}个。`
+      : ''
   const rainSummary = analysis
     ? `监测分析：最大降雨${analysis.max ?? '-'}mm，平均降雨${analysis.avg ?? '-'}mm，命中雨区${analysis.count ?? 0}个，周边重点设施${context?.pois?.length ?? 0}个。`
     : ''
@@ -310,8 +349,8 @@ const buildWarningDescription = (
 
   return [
     summaryParts.join('，') + '。',
-    rainSummary,
-    base && !rainSummary ? base : '',
+    temperatureSummary || rainSummary,
+    base && !(temperatureSummary || rainSummary) ? base : '',
     '防御建议：',
     advice,
   ]
@@ -346,6 +385,33 @@ const getInitialFormItemOrder = () => {
   } catch {
     return defaultFormItemOrder
   }
+}
+
+const getLocalWarningDraft = (): LocalWarningDraft | null => {
+  if (typeof window === 'undefined') return null
+
+  try {
+    const draft = JSON.parse(window.localStorage.getItem(warningDraftStorageKey) || 'null')
+    return draft && typeof draft === 'object' ? draft : null
+  } catch {
+    return null
+  }
+}
+
+const saveLocalWarningDraft = (draft: LocalWarningDraft) => {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(
+    warningDraftStorageKey,
+    JSON.stringify({
+      ...draft,
+      savedAt: new Date().toISOString(),
+    }),
+  )
+}
+
+const clearLocalWarningDraft = () => {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(warningDraftStorageKey)
 }
 
 const SortablePanel = ({
@@ -418,6 +484,7 @@ const WarningPublish = () => {
   const state = (location.state || {}) as LocationState
   const values = Form.useWatch([], form)
   const [submitting, setSubmitting] = useState(false)
+  const [draftSavedAt, setDraftSavedAt] = useState(() => getLocalWarningDraft()?.savedAt)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [typhoonList, setTyphoonList] = useState<TyphoonListItem[]>([])
   const [linkedCenter, setLinkedCenter] = useState<number[] | undefined>(state.center)
@@ -425,8 +492,8 @@ const WarningPublish = () => {
     state.typhoonWarning?.analysis || state.analysis || null,
   )
   const [linkedPois, setLinkedPois] = useState<BufferPoiItem[]>(state.pois || [])
-  const [sourceMode, setSourceMode] = useState<'rain' | 'typhoon'>(
-    state.typhoonWarning ? 'typhoon' : 'rain',
+  const [sourceMode, setSourceMode] = useState<'rain' | 'typhoon' | 'temperature'>(
+    state.source === 'temperature' ? 'temperature' : state.typhoonWarning ? 'typhoon' : 'rain',
   )
   const [formItemOrder, setFormItemOrder] = useState<FormItemKey[]>(getInitialFormItemOrder)
   const sensors = useSensors(
@@ -442,9 +509,19 @@ const WarningPublish = () => {
 
   const selectedType = Form.useWatch('type', form)
   const selectedLevel = Form.useWatch('level', form)
+  const hasIncomingWarningContext = Boolean(
+    state.source || state.center || state.analysis || state.typhoonWarning,
+  )
 
   const initialDescription = useMemo(() => {
     if (state.typhoonWarning) return state.typhoonWarning.description
+    if (state.source === 'temperature' && state.analysis) {
+      return buildWarningDescription('temperature', riskToLevel(state.analysis.risk), {
+        radius: state.radius || 5,
+        analysis: state.analysis,
+        baseDescription: `监测来源：${state.analysis.source || '温度监测'}。`,
+      })
+    }
     if (!state.analysis) return ''
 
     const level = riskToLevel(state.analysis.risk)
@@ -464,12 +541,15 @@ const WarningPublish = () => {
   }, [])
 
   useEffect(() => {
-    form.setFieldsValue({
+    const localDraft = hasIncomingWarningContext ? null : getLocalWarningDraft()
+    const initialValues: Partial<WarningFormValues> = {
       title: state.typhoonWarning
         ? state.typhoonWarning.title
-        : state.analysis
-          ? `${state.analysis.risk || '低风险'}区域预警`
-          : '气象灾害预警',
+        : state.source === 'temperature'
+          ? `${state.analysis?.risk || '高温'}区域预警`
+          : state.analysis
+            ? `${state.analysis.risk || '低风险'}区域预警`
+            : '气象灾害预警',
       location:
         state.typhoonWarning?.location ||
         (state.center
@@ -479,17 +559,37 @@ const WarningPublish = () => {
             : userPreferences.defaultDistrict),
       radius: state.radius || 5,
       level: state.typhoonWarning?.level || riskToLevel(state.analysis?.risk),
-      type: state.typhoonWarning ? 'typhoon' : 'rain',
+      type: state.typhoonWarning
+        ? 'typhoon'
+        : state.source === 'temperature'
+          ? 'temperature'
+          : 'rain',
       publisher: '管理员',
       description: initialDescription,
       typhoonNo: state.typhoonWarning?.no,
+    }
+
+    form.setFieldsValue({
+      ...initialValues,
+      ...localDraft,
     })
+
+    if (localDraft) {
+      if (localDraft.sourceMode) setSourceMode(localDraft.sourceMode)
+      setLinkedCenter(localDraft.linkedCenter)
+      setLinkedAnalysis(localDraft.linkedAnalysis || null)
+      setLinkedPois(localDraft.linkedPois || [])
+      setDraftSavedAt(localDraft.savedAt)
+      message.info('已恢复本地草稿')
+    }
   }, [
     form,
+    hasIncomingWarningContext,
     initialDescription,
     state.analysis,
     state.center,
     state.radius,
+    state.source,
     state.typhoonWarning,
     userPreferences.defaultDistrict,
   ])
@@ -497,6 +597,8 @@ const WarningPublish = () => {
   useEffect(() => {
     if (selectedType === 'typhoon') {
       setSourceMode('typhoon')
+    } else if (selectedType === 'temperature') {
+      setSourceMode('temperature')
     } else if (selectedType === 'rain' || selectedType === 'flood') {
       setSourceMode('rain')
     }
@@ -552,7 +654,7 @@ const WarningPublish = () => {
   }
 
   const handleSourceModeChange = (value: string | number) => {
-    const mode = value as 'rain' | 'typhoon'
+    const mode = value as 'rain' | 'typhoon' | 'temperature'
     setSourceMode(mode)
 
     if (mode === 'typhoon') {
@@ -560,6 +662,25 @@ const WarningPublish = () => {
         type: 'typhoon',
         title: values?.title === '气象灾害预警' ? '台风预警' : values?.title,
       })
+      return
+    }
+
+    if (mode === 'temperature') {
+      form.setFieldsValue({
+        type: 'temperature',
+        typhoonNo: undefined,
+        title:
+          state.source === 'temperature'
+            ? `${state.analysis?.risk || '高温'}区域预警`
+            : '高温天气预警',
+        location: state.center ? `${state.center[0]}, ${state.center[1]}` : values?.location,
+        radius: state.radius || values?.radius || 5,
+        level: riskToLevel(state.analysis?.risk),
+        description: state.source === 'temperature' ? initialDescription : values?.description,
+      })
+      setLinkedCenter(state.center)
+      setLinkedAnalysis(state.source === 'temperature' ? state.analysis || null : null)
+      setLinkedPois([])
       return
     }
 
@@ -679,7 +800,54 @@ const WarningPublish = () => {
     pois: linkedPois,
   })
 
+  const persistLocalDraft = (formValues: Partial<WarningFormValues>) => {
+    saveLocalWarningDraft({
+      ...formValues,
+      sourceMode,
+      linkedCenter,
+      linkedAnalysis,
+      linkedPois,
+    })
+    setDraftSavedAt(new Date().toISOString())
+  }
+
+  const isDraftReadyForServer = (formValues: Partial<WarningFormValues>) =>
+    Boolean(
+      formValues.title &&
+      formValues.location &&
+      formValues.type &&
+      formValues.level &&
+      formValues.radius &&
+      formValues.description,
+    )
+
   const submitWarning = async (status: WarningStatus) => {
+    if (status === 'draft') {
+      const formValues = form.getFieldsValue(true)
+      persistLocalDraft(formValues)
+
+      if (!isDraftReadyForServer(formValues)) {
+        message.success('草稿已保存到本地，补全必填内容后可同步到预警列表')
+        return
+      }
+
+      setSubmitting(true)
+      try {
+        const res = await createWarning(buildPayload(formValues as WarningFormValues, status))
+        if (res.code === 0) {
+          message.success('草稿已保存，并已同步到预警列表')
+          return
+        }
+
+        message.warning(res.message || '本地草稿已保存，同步列表失败')
+      } catch {
+        message.warning('本地草稿已保存，同步列表失败')
+      } finally {
+        setSubmitting(false)
+      }
+      return
+    }
+
     const formValues = await form.validateFields()
     const payload = buildPayload(formValues, status)
 
@@ -689,6 +857,8 @@ const WarningPublish = () => {
       if (res.code === 0) {
         message.success(res.message)
         if (status === 'published') {
+          clearLocalWarningDraft()
+          setDraftSavedAt(undefined)
           window.dispatchEvent(new Event(warningChangedEvent))
         }
         return
@@ -705,6 +875,7 @@ const WarningPublish = () => {
   const visibleFormItemOrder = formItemOrder.filter(
     item => sourceMode === 'typhoon' || item !== 'typhoonNo',
   )
+  const draggableFormItemOrder = visibleFormItemOrder.filter(item => item !== 'actions')
   const getFormItemOrder = (id: FormItemKey) => visibleFormItemOrder.indexOf(id)
 
   const previewItemMap: Record<FormItemKey, ReactNode> = {
@@ -815,7 +986,7 @@ const WarningPublish = () => {
             collisionDetection={closestCenter}
             onDragEnd={handleFormItemDragChange}
           >
-            <SortableContext items={visibleFormItemOrder} strategy={rectSortingStrategy}>
+            <SortableContext items={draggableFormItemOrder} strategy={rectSortingStrategy}>
               <div className={styles.formItemList}>
                 <SortableFormItem id="title" label="title" order={getFormItemOrder('title')}>
                   <Form.Item
@@ -874,10 +1045,24 @@ const WarningPublish = () => {
                     <div className={styles.aiTemplateHeader}>
                       <div>
                         <strong>AI 预警文案助手</strong>
-                        <span>根据灾害类型、风险等级、影响区域和监测分析自动生成结构化预警正文。</span>
+                        <span>
+                          根据灾害类型、风险等级、影响区域和监测分析自动生成结构化预警正文。
+                        </span>
                       </div>
-                      <Tag color={sourceMode === 'typhoon' ? 'orange' : 'blue'}>
-                        {sourceMode === 'typhoon' ? '台风路径联动' : '降水分析联动'}
+                      <Tag
+                        color={
+                          sourceMode === 'typhoon'
+                            ? 'orange'
+                            : sourceMode === 'temperature'
+                              ? 'red'
+                              : 'blue'
+                        }
+                      >
+                        {sourceMode === 'typhoon'
+                          ? '台风路径联动'
+                          : sourceMode === 'temperature'
+                            ? '温度监测联动'
+                            : '降水分析联动'}
                       </Tag>
                     </div>
                     <div className={styles.aiPromptGrid}>
@@ -894,7 +1079,9 @@ const WarningPublish = () => {
                         <b>
                           {sourceMode === 'typhoon'
                             ? String(linkedAnalysis?.typhoonName || values?.typhoonNo || '待选择')
-                            : `${linkedAnalysis?.max ?? '-'}mm / ${linkedPois.length}个设施`}
+                            : sourceMode === 'temperature'
+                              ? `${linkedAnalysis?.max ?? '-'}°C / ${linkedAnalysis?.hotCount ?? linkedAnalysis?.count ?? 0}个高温站点`
+                              : `${linkedAnalysis?.max ?? '-'}mm / ${linkedPois.length}个设施`}
                         </b>
                       </div>
                     </div>
@@ -976,31 +1163,35 @@ const WarningPublish = () => {
                     <TextArea rows={6} placeholder="请输入预警说明" />
                   </Form.Item>
                 </SortableFormItem>
-
-                <SortableFormItem id="actions" label="actions" order={getFormItemOrder('actions')}>
-                  <Space>
-	                    <Button
-	                      icon={<SaveOutlined />}
-	                      loading={submitting}
-	                      disabled={!canCreateWarning}
-	                      onClick={() => void submitWarning('draft')}
-                    >
-                      保存草稿
-                    </Button>
-                    <Button
-	                      type="primary"
-	                      icon={<FileDoneOutlined />}
-	                      loading={submitting}
-	                      disabled={!canPublishWarning}
-	                      onClick={() => void submitWarning('published')}
-                    >
-                      发布预警
-                    </Button>
-                  </Space>
-                </SortableFormItem>
               </div>
             </SortableContext>
           </DndContext>
+          <div className={styles.fixedActionRow}>
+            <div className={styles.draftStatus}>
+              {draftSavedAt
+                ? `本地草稿已保存：${new Date(draftSavedAt).toLocaleString()}`
+                : '草稿会保存在本地，重新进入可继续编辑'}
+            </div>
+            <Space wrap>
+              <Button
+                icon={<SaveOutlined />}
+                loading={submitting}
+                disabled={!canCreateWarning}
+                onClick={() => void submitWarning('draft')}
+              >
+                保存草稿
+              </Button>
+              <Button
+                type="primary"
+                icon={<FileDoneOutlined />}
+                loading={submitting}
+                disabled={!canPublishWarning}
+                onClick={() => void submitWarning('published')}
+              >
+                发布预警
+              </Button>
+            </Space>
+          </div>
         </Form>
       </SortablePanel>
     ),
@@ -1012,7 +1203,7 @@ const WarningPublish = () => {
         cardClassName={styles.previewCard}
       >
         <div className={styles.previewItemList}>
-          {visibleFormItemOrder.map(item => (
+          {[...draggableFormItemOrder, 'actions' as const].map(item => (
             <div key={item} className={styles.previewSortableItem}>
               {previewItemMap[item]}
             </div>
@@ -1044,6 +1235,7 @@ const WarningPublish = () => {
             value={sourceMode}
             options={[
               { label: '降水 / 洪涝', value: 'rain' },
+              { label: '高温', value: 'temperature' },
               { label: '台风', value: 'typhoon' },
             ]}
             onChange={handleSourceModeChange}
@@ -1056,7 +1248,9 @@ const WarningPublish = () => {
           message={
             sourceMode === 'typhoon'
               ? '选择关联台风后，将自动同步路径点、风圈半径、城市影响分析和防御建议。'
-              : '从降水监测页进入时，将自动同步缓冲区中心、影响半径、降雨统计和周边设施。'
+              : sourceMode === 'temperature'
+                ? '从温度监测页进入时，将自动同步高温站点、平均温度、最高温度和影响范围。'
+                : '从降水监测页进入时，将自动同步缓冲区中心、影响半径、降雨统计和周边设施。'
           }
         />
       </Card>

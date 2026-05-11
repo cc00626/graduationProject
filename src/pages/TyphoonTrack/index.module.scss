@@ -22,7 +22,7 @@
   .layerSwitch {
     position: absolute;
     top: 16px;
-    left: 16px;
+    right: 496px;
     z-index: 80;
     display: flex;
     align-items: center;
@@ -334,6 +334,12 @@
     .timeControl {
       left: 50%;
       bottom: calc(42% + 16px);
+    }
+
+    .layerSwitch {
+      right: 16px;
+      left: auto;
+      max-width: calc(100% - 32px);
     }
   }
 }

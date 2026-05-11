@@ -17,7 +17,7 @@
   .layerSwitch {
     position: absolute;
     top: 16px;
-    left: 16px;
+    right: 496px;
     z-index: 80;
     display: flex;
     align-items: center;
@@ -290,20 +290,6 @@
     }
   }
 
-  .timeControl {
-    position: absolute;
-    bottom: 24px;
-    left: calc((100% - 480px) / 2);
-    z-index: 50;
-    width: 260px;
-    padding: 12px 14px;
-    background: #fff;
-    border: 1px solid #e3ebf3;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
-    transform: translateX(-50%);
-  }
-
   @media (max-width: 1180px) {
     .mapCanvas {
       width: 100%;
@@ -324,9 +310,11 @@
       right: auto;
     }
 
-    .timeControl {
-      left: 50%;
-      bottom: calc(42% + 16px);
+    .layerSwitch {
+      right: 16px;
+      left: auto;
+      flex-wrap: wrap;
+      max-width: calc(100% - 32px);
     }
   }
 }

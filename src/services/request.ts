@@ -22,11 +22,14 @@ instance.interceptors.response.use(
   error => {
     if (error.response) {
       const { status, data } = error.response
+      const requestUrl = error.config?.url || ''
       console.error(`Error ${status}:`, data)
 
-      if (status === 401) {
+      if (status === 401 && !requestUrl.includes('/auth/login')) {
         clearAuth()
-        window.location.href = '/login'
+        if (!['/login', '/register'].includes(window.location.pathname)) {
+          window.location.href = '/login'
+        }
       }
     } else if (error.request) {
       console.error('No response received:', error.request)

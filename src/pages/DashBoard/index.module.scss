@@ -1,7 +1,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -20,19 +20,32 @@
 }
 
 .card,
-.metricCard {
+.metricCard,
+.tabsCard {
   border-radius: 8px;
 }
 
-.metricCard {
-  height: 100%;
+.card :global(.ant-card-head) {
+  min-height: 46px;
+}
+
+.card :global(.ant-card-head-title) {
+  color: #17233d;
+  font-weight: 700;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .metricCard :global(.ant-card-body) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 128px;
+  min-height: 108px;
+  padding: 18px;
 }
 
 .metricCard :global(.ant-statistic-title) {
@@ -49,34 +62,136 @@
   font-size: 20px;
 }
 
-.mapPanel {
-  height: 460px;
-  overflow: hidden;
-  border: 1px solid #e3ebf3;
-  border-radius: 8px;
-  background: #f7f9fc;
+.tabsCard :global(.ant-card-body) {
+  padding: 12px 16px 16px;
 }
 
-.thresholdGrid {
+.tabsCard :global(.ant-tabs-nav) {
+  margin-bottom: 14px;
+}
+
+.tabsCard :global(.ant-tabs-tab) {
+  padding: 10px 0;
+}
+
+.tabGridThree {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.tabGridTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.tabGridSingle {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.chart {
+  width: 100%;
+  min-height: 240px;
+}
+
+.districtGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 330px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.districtCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 8px;
+  min-height: 112px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e3ebf3;
+  border-radius: 6px;
+}
+
+.districtCard strong {
+  overflow: hidden;
+  color: #17233d;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.districtCard span,
+.districtCard em {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  color: #64748b;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.districtCard b {
+  grid-column: 1 / -1;
+  color: #ff7a45;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.forecastList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
-.thresholdItem {
+.forecastItem {
   display: grid;
   gap: 8px;
-  min-height: 76px;
+  min-height: 128px;
   padding: 12px;
+  background: linear-gradient(180deg, #f8fbff, #ffffff);
   border: 1px solid #e3ebf3;
-  border-radius: 6px;
-  background: #f8fafc;
+  border-radius: 8px;
 }
 
-.thresholdItem strong {
+.forecastItem div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.forecastItem strong {
   color: #17233d;
-  font-size: 24px;
-  line-height: 1;
+}
+
+.forecastItem span,
+.forecastItem em,
+.forecastItem small {
+  overflow: hidden;
+  color: #64748b;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.forecastItem b {
+  color: #ff7a45;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.sourceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .card :global(.ant-table-wrapper) {
@@ -91,6 +206,30 @@
   background: #f8fafc;
 }
 
+@media (max-width: 1440px) {
+  .metricGrid,
+  .tabGridThree {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .districtGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1080px) {
+  .metricGrid,
+  .tabGridThree,
+  .tabGridTwo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .districtGrid,
+  .forecastList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 900px) {
   .header {
     flex-direction: column;
@@ -101,11 +240,11 @@
     justify-content: space-between;
   }
 
-  .mapPanel {
-    height: 360px;
-  }
-
-  .thresholdGrid {
+  .metricGrid,
+  .tabGridThree,
+  .tabGridTwo,
+  .districtGrid,
+  .forecastList {
     grid-template-columns: 1fr;
   }
 }

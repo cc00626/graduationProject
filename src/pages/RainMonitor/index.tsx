@@ -22,7 +22,6 @@ import {
   type RainMonitorData,
   type RainPeriod,
   type RainStationDetailPayload,
-  type RainTopStation,
 } from '@/services/rain'
 import { useNavigate } from 'react-router-dom'
 import { Button, Checkbox, Segmented, Table, Tag, message } from 'antd'
@@ -84,15 +83,13 @@ const RainMonitor = () => {
   const canEditWarnings = canManageWarnings()
   const boundaryLabel = '\u884c\u653f\u8fb9\u754c'
   const rainLayerLabel = '\u964d\u96e8\u56fe\u5c42'
-  const timeLabel = '\u76d1\u6d4b\u65f6\u523b'
   const legendTitle = '\u964d\u6c34\u91cf\u9884\u62a5(mm)'
 
   const mapRef = useRef(null)
   const mapInstance = useRef<Map | null>(null)
-  const [currentTime, setCurrentTime] = useState('10:00')
+  const [currentTime] = useState('10:00')
   const [rainPeriod, setRainPeriod] = useState<RainPeriod>('1h')
   const [monitorData, setMonitorData] = useState<RainMonitorData | null>(null)
-  const [monitorLoading, setMonitorLoading] = useState(false)
   const [bufferRadius, setBufferRadius] = useState(0.5)
   const [lastRightClickCoord, setLastRightClickCoord] = useState<{
     lonLat: number[]
@@ -116,8 +113,9 @@ const RainMonitor = () => {
   const poiPopupRef = useRef<HTMLDivElement | null>(null)
   const poiOverlayRef = useRef<Overlay | null>(null)
   const [pointResults, setPoiResults] = useState<BufferPoiItem[]>([])
-  const [selectedStation, setSelectedStation] =
-    useState<NonNullable<RainStationDetailPayload['data']> | null>(null)
+  const [selectedStation, setSelectedStation] = useState<NonNullable<
+    RainStationDetailPayload['data']
+  > | null>(null)
   const [analysisResult, setAnalysisResult] = useState<{
     count: number
     avg: number
@@ -145,7 +143,9 @@ const RainMonitor = () => {
     const allRainFeatures = rainSourceRef.current.getFeatures()
     const trappedFeatures = allRainFeatures.filter(feature => {
       const geometry = feature.getGeometry()
-      return geometry ? (bufferFeature.getGeometry()?.intersectsExtent(geometry.getExtent()) ?? false) : false
+      return geometry
+        ? (bufferFeature.getGeometry()?.intersectsExtent(geometry.getExtent()) ?? false)
+        : false
     })
     const values = trappedFeatures
       .map(f => {
@@ -279,14 +279,7 @@ const RainMonitor = () => {
     warningLayerRef.current = warningLayer
     mapInstance.current = new Map({
       target: mapRef.current ?? undefined,
-      layers: [
-        baseLayer,
-        boundaryLayer,
-        rainLayer,
-        analysisLayer,
-        poiLayer,
-        warningLayer,
-      ],
+      layers: [baseLayer, boundaryLayer, rainLayer, analysisLayer, poiLayer, warningLayer],
       view: new View({
         center: fromLonLat([113.26, 23.13]),
         zoom: 9,
@@ -396,7 +389,6 @@ const RainMonitor = () => {
 
   useEffect(() => {
     const loadMonitorData = async () => {
-      setMonitorLoading(true)
       try {
         const res = await getRainMonitor(rainPeriod, currentTime)
         if (res.success) {
@@ -405,8 +397,6 @@ const RainMonitor = () => {
       } catch (error) {
         console.error('降水监测摘要加载失败:', error)
         message.error('降水监测摘要加载失败')
-      } finally {
-        setMonitorLoading(false)
       }
     }
 
@@ -494,7 +484,6 @@ const RainMonitor = () => {
         if (res.success && res.data) {
           console.log('查询到的站点详情:', res.data)
           setSelectedStation(res.data)
-
         } else {
           console.log('该位置附近 5km 内没有监测站')
           setSelectedStation(null)
@@ -516,12 +505,6 @@ const RainMonitor = () => {
       [layerName]: !prev[layerName],
     }))
   }
-
-  const visibleTopStations = useMemo(() => {
-    const stations = monitorData?.topStations ?? []
-    if (userPreferences.defaultDistrict === '全市') return stations
-    return stations.filter(station => station.district === userPreferences.defaultDistrict)
-  }, [monitorData?.topStations, userPreferences.defaultDistrict])
 
   //处理缓冲区分析
   const handleBuffer = async () => {
@@ -599,58 +582,6 @@ const RainMonitor = () => {
     setPoiResults([])
   }
 
-  const focusStation = (station: RainTopStation) => {
-    mapInstance.current?.getView().animate({
-      center: fromLonLat(station.coordinates),
-      zoom: 13,
-      duration: 500,
-    })
-    setSelectedStation({
-      stationCode: station.stationCode,
-      stationName: station.stationName,
-      district: station.district,
-      time: currentTime,
-      period: rainPeriod,
-      precip: station.precip,
-      rawPrecip: station.precip,
-      level: station.level,
-      coordinates: station.coordinates,
-      distanceKm: 0,
-      updatedAt: monitorData?.updatedAt ?? null,
-    })
-  }
-
-  const stationColumns = [
-    {
-      title: '排名',
-      dataIndex: 'rank',
-      width: 64,
-    },
-    {
-      title: '站点',
-      dataIndex: 'stationName',
-      ellipsis: true,
-    },
-    {
-      title: '雨量',
-      dataIndex: 'precip',
-      width: 92,
-      render: (value: number, record: RainTopStation) => (
-        <span className={style.rainValue} style={{ color: record.level.color }}>
-          {value} mm
-        </span>
-      ),
-    },
-    {
-      title: '等级',
-      dataIndex: 'level',
-      width: 88,
-      render: (level: RainTopStation['level']) => (
-        <Tag color={warningColorMap[level.warningLevel]}>{level.label}</Tag>
-      ),
-    },
-  ]
-
   return (
     <div className={style.mapContainer} style={{ position: 'relative' }}>
       <div
@@ -678,223 +609,209 @@ const RainMonitor = () => {
         </Button>
       </div>
 
-      {panelOpen && <aside className={style.monitorPanel}>
-        {lastRightClickCoord ? (
-          <div className={style.analysisPanel}>
-            <div className={style.panelHeader}>
-              <div>
-                <h2>缓冲区分析</h2>
-                <span>
-                  中心点：{lastRightClickCoord.lonLat[0].toFixed(4)}，
-                  {lastRightClickCoord.lonLat[1].toFixed(4)}
-                </span>
-              </div>
-              <Tag color={analysisResult?.risk === '高风险' ? 'red' : analysisResult ? 'orange' : 'blue'}>
-                {analysisResult?.risk ?? '待分析'}
-              </Tag>
-            </div>
-
-            <div className={style.radiusControl}>
-              <div>
-                <span>影响半径</span>
-                <strong>{bufferRadius} km</strong>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="50"
-                step="0.5"
-                value={bufferRadius}
-                onChange={event => setBufferRadius(parseFloat(event.target.value))}
-              />
-              <div className={style.rangeHint}>
-                <span>500m</span>
-                <span>50km</span>
-              </div>
-            </div>
-
-            <div className={style.actionRow}>
-              <Button type="primary" onClick={handleBuffer}>
-                开始分析
-              </Button>
-              <Button onClick={handleClearAnalysis}>取消分析</Button>
-              <Button
-                disabled={!canEditWarnings}
-                onClick={() => {
-                  if (!analysisResult || !lastRightClickCoord) {
-                    alert('先分析，再发布，别乱点')
-                    return
+      {panelOpen && (
+        <aside className={style.monitorPanel}>
+          {lastRightClickCoord ? (
+            <div className={style.analysisPanel}>
+              <div className={style.panelHeader}>
+                <div>
+                  <h2>缓冲区分析</h2>
+                  <span>
+                    中心点：{lastRightClickCoord.lonLat[0].toFixed(4)}，
+                    {lastRightClickCoord.lonLat[1].toFixed(4)}
+                  </span>
+                </div>
+                <Tag
+                  color={
+                    analysisResult?.risk === '高风险' ? 'red' : analysisResult ? 'orange' : 'blue'
                   }
+                >
+                  {analysisResult?.risk ?? '待分析'}
+                </Tag>
+              </div>
 
-                  navigate('/monitor/warning', {
-                    state: {
-                      center: lastRightClickCoord.lonLat,
-                      radius: bufferRadius,
-                      analysis: analysisResult,
-                      pois: pointResults,
+              <div className={style.radiusControl}>
+                <div>
+                  <span>影响半径</span>
+                  <strong>{bufferRadius} km</strong>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="50"
+                  step="0.5"
+                  value={bufferRadius}
+                  onChange={event => setBufferRadius(parseFloat(event.target.value))}
+                />
+                <div className={style.rangeHint}>
+                  <span>500m</span>
+                  <span>50km</span>
+                </div>
+              </div>
+
+              <div className={style.actionRow}>
+                <Button type="primary" onClick={handleBuffer}>
+                  开始分析
+                </Button>
+                <Button onClick={handleClearAnalysis}>取消分析</Button>
+                <Button
+                  disabled={!canEditWarnings}
+                  onClick={() => {
+                    if (!analysisResult || !lastRightClickCoord) {
+                      alert('先分析，再发布，别乱点')
+                      return
+                    }
+
+                    navigate('/monitor/warning', {
+                      state: {
+                        center: lastRightClickCoord.lonLat,
+                        radius: bufferRadius,
+                        analysis: analysisResult,
+                        pois: pointResults,
+                      },
+                    })
+                  }}
+                >
+                  发布预警
+                </Button>
+              </div>
+
+              {analysisResult && (
+                <div className={style.metricGrid}>
+                  <div>
+                    <span>命中雨区</span>
+                    <strong>{analysisResult.count} 个</strong>
+                  </div>
+                  <div>
+                    <span>平均雨量</span>
+                    <strong>{analysisResult.avg} mm</strong>
+                  </div>
+                  <div>
+                    <span>最大雨量</span>
+                    <strong>{analysisResult.max} mm</strong>
+                  </div>
+                  <div>
+                    <span>影响设施</span>
+                    <strong>{pointResults.length} 个</strong>
+                  </div>
+                </div>
+              )}
+
+              <div className={style.tableTitle}>影响设施列表</div>
+              <div className={style.analysisTable}>
+                <Table
+                  rowKey={(record, index) => record.id || String(index ?? 0)}
+                  columns={columns}
+                  dataSource={pointResults}
+                  size="small"
+                  pagination={{ pageSize: 6 }}
+                  locale={{ emptyText: '点击“开始分析”获取周边设施' }}
+                  onRow={record => ({
+                    onClick: () => {
+                      const coords = formatLocation(record.location)
+
+                      mapInstance.current?.getView().animate({
+                        center: fromLonLat(coords),
+                        zoom: 13,
+                        duration: 500,
+                      })
                     },
-                  })
-                }}
-              >
-                发布预警
-              </Button>
+                  })}
+                />
+              </div>
             </div>
+          ) : (
+            <>
+              <div className={style.panelHeader}>
+                <div>
+                  <h2>降水监测</h2>
+                  <span>
+                    {userPreferences.defaultDistrict === '全市'
+                      ? `${monitorData?.stationCount ?? 0} 个自动雨量站`
+                      : `关注 ${userPreferences.defaultDistrict}`}
+                  </span>
+                </div>
+                <Tag
+                  color={
+                    monitorData?.thresholds.danger
+                      ? 'red'
+                      : monitorData?.thresholds.warning
+                        ? 'orange'
+                        : 'green'
+                  }
+                >
+                  {monitorData?.thresholds.danger
+                    ? '高风险'
+                    : monitorData?.thresholds.warning
+                      ? '暴雨阈值'
+                      : '平稳'}
+                </Tag>
+              </div>
 
-            {analysisResult && (
+              <Segmented
+                block
+                value={rainPeriod}
+                options={periodOptions}
+                onChange={value => setRainPeriod(value as RainPeriod)}
+              />
+
               <div className={style.metricGrid}>
                 <div>
-                  <span>命中雨区</span>
-                  <strong>{analysisResult.count} 个</strong>
-                </div>
-                <div>
                   <span>平均雨量</span>
-                  <strong>{analysisResult.avg} mm</strong>
+                  <strong>{monitorData?.avgPrecip ?? '--'} mm</strong>
                 </div>
                 <div>
                   <span>最大雨量</span>
-                  <strong>{analysisResult.max} mm</strong>
+                  <strong>{monitorData?.maxPrecip ?? '--'} mm</strong>
                 </div>
                 <div>
-                  <span>影响设施</span>
-                  <strong>{pointResults.length} 个</strong>
+                  <span>暴雨站点</span>
+                  <strong>{monitorData?.thresholds.warning ?? '--'} 个</strong>
+                </div>
+                <div>
+                  <span>大暴雨站点</span>
+                  <strong>{monitorData?.thresholds.danger ?? '--'} 个</strong>
                 </div>
               </div>
-            )}
 
-            <div className={style.tableTitle}>影响设施列表</div>
-            <div className={style.analysisTable}>
-              <Table
-                rowKey={(record, index) => record.id || String(index ?? 0)}
-                columns={columns}
-                dataSource={pointResults}
-                size="small"
-                pagination={{ pageSize: 6 }}
-                locale={{ emptyText: '点击“开始分析”获取周边设施' }}
-                onRow={record => ({
-                  onClick: () => {
-                    const coords = formatLocation(record.location)
+              <div className={style.thresholdBox}>
+                <div>{monitorData?.thresholds.message ?? '正在加载阈值状态'}</div>
+                {monitorData?.thresholds.maxStation && (
+                  <span>
+                    最强站点：{monitorData.thresholds.maxStation.stationName}，
+                    {monitorData.thresholds.maxStation.precip} mm
+                  </span>
+                )}
+              </div>
 
-                    mapInstance.current?.getView().animate({
-                      center: fromLonLat(coords),
-                      zoom: 13,
-                      duration: 500,
-                    })
-                  },
-                })}
-              />
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className={style.panelHeader}>
-              <div>
-                <h2>降水监测</h2>
-                <span>
-                  {userPreferences.defaultDistrict === '全市'
-                    ? `${monitorData?.stationCount ?? 0} 个自动雨量站`
-                    : `关注 ${userPreferences.defaultDistrict}，${visibleTopStations.length} 个强降水站点`}
-                </span>
-              </div>
-              <Tag color={monitorData?.thresholds.danger ? 'red' : monitorData?.thresholds.warning ? 'orange' : 'green'}>
-                {monitorData?.thresholds.danger
-                  ? '高风险'
-                  : monitorData?.thresholds.warning
-                    ? '暴雨阈值'
-                    : '平稳'}
-              </Tag>
-            </div>
+              <RainfallOnlyChart />
 
-            <Segmented
-              block
-              value={rainPeriod}
-              options={periodOptions}
-              onChange={value => setRainPeriod(value as RainPeriod)}
-            />
-
-            <div className={style.metricGrid}>
-              <div>
-                <span>平均雨量</span>
-                <strong>{monitorData?.avgPrecip ?? '--'} mm</strong>
-              </div>
-              <div>
-                <span>最大雨量</span>
-                <strong>{monitorData?.maxPrecip ?? '--'} mm</strong>
-              </div>
-              <div>
-                <span>暴雨站点</span>
-                <strong>{monitorData?.thresholds.warning ?? '--'} 个</strong>
-              </div>
-              <div>
-                <span>大暴雨站点</span>
-                <strong>{monitorData?.thresholds.danger ?? '--'} 个</strong>
-              </div>
-            </div>
-
-            <div className={style.thresholdBox}>
-              <div>{monitorData?.thresholds.message ?? '正在加载阈值状态'}</div>
-              {monitorData?.thresholds.maxStation && (
-                <span>
-                  最强站点：{monitorData.thresholds.maxStation.stationName}，
-                  {monitorData.thresholds.maxStation.precip} mm
-                </span>
+              {selectedStation && (
+                <div className={style.stationDetail}>
+                  <div className={style.detailTitle}>
+                    <strong>{selectedStation.stationName}</strong>
+                    <Tag color={warningColorMap[selectedStation.level.warningLevel]}>
+                      {selectedStation.level.label}
+                    </Tag>
+                  </div>
+                  <div className={style.detailGrid}>
+                    <span>所属区县</span>
+                    <b>{selectedStation.district}</b>
+                    <span>累计雨量</span>
+                    <b>{selectedStation.precip} mm</b>
+                    <span>站点编号</span>
+                    <b>{selectedStation.stationCode}</b>
+                    <span>距点击点</span>
+                    <b>{selectedStation.distanceKm} km</b>
+                  </div>
+                </div>
               )}
-            </div>
 
-            <RainfallOnlyChart />
+            </>
+          )}
+        </aside>
+      )}
 
-            {selectedStation && (
-              <div className={style.stationDetail}>
-                <div className={style.detailTitle}>
-                  <strong>{selectedStation.stationName}</strong>
-                  <Tag color={warningColorMap[selectedStation.level.warningLevel]}>
-                    {selectedStation.level.label}
-                  </Tag>
-                </div>
-                <div className={style.detailGrid}>
-                  <span>所属区县</span>
-                  <b>{selectedStation.district}</b>
-                  <span>累计雨量</span>
-                  <b>{selectedStation.precip} mm</b>
-                  <span>站点编号</span>
-                  <b>{selectedStation.stationCode}</b>
-                  <span>距点击点</span>
-                  <b>{selectedStation.distanceKm} km</b>
-                </div>
-              </div>
-            )}
-
-            <div className={style.tableTitle}>强降水站点 TOP10</div>
-            <div className={style.topTable}>
-              <Table<RainTopStation>
-                rowKey="stationCode"
-                loading={monitorLoading}
-                columns={stationColumns}
-                dataSource={visibleTopStations}
-                size="small"
-                pagination={false}
-                onRow={record => ({
-                  onClick: () => focusStation(record),
-                })}
-              />
-            </div>
-          </>
-        )}
-      </aside>}
-
-      <div className={style.timeControl}>
-        <div style={{ marginBottom: '10px', fontWeight: 'bold' }}>
-          {timeLabel}: {currentTime}
-        </div>
-        <input
-          type="range"
-          min="10"
-          max="12"
-          step="1"
-          value={currentTime.split(':')[0]}
-          onChange={event => setCurrentTime(`${event.target.value}:00`)}
-          style={{ width: '200px' }}
-        />
-      </div>
       <div className={style.legend}>
         <div className={style.legendTitle}>{legendTitle}</div>
         <div className={style.legendContent}>
@@ -940,11 +857,7 @@ const RainMonitor = () => {
           lineHeight: 1.7,
         }}
       />
-      <div
-        ref={poiPopupRef}
-        className={style.poiPopup}
-        style={{ display: 'none' }}
-      />
+      <div ref={poiPopupRef} className={style.poiPopup} style={{ display: 'none' }} />
     </div>
   )
 }

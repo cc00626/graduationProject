@@ -5,12 +5,14 @@ import Layout from '@/layout'
 import DashBoard from '@/pages/DashBoard'
 import EmergencyDetail from '@/pages/EmergencyDetail'
 import RainMonitor from '@/pages/RainMonitor'
+import TemperatureMonitor from '@/pages/TemperatureMonitor'
 import TyphoonTrack from '@/pages/TyphoonTrack'
 import WarningList from '@/pages/WarningList'
 import WarningPublish from '@/pages/WarningPublish'
 import SystemSetting from '@/pages/SystemSetting'
 import PermissionManagement from '@/pages/PermissionManagement'
 import RoleManagement from '@/pages/RoleManagement'
+import NoPermission from '@/pages/NoPermission'
 import { GuestOnlyRoute, PermissionRoute, ProtectedRoute } from './guards'
 
 const router = createBrowserRouter([
@@ -47,10 +49,22 @@ const router = createBrowserRouter([
         element: <DashBoard />,
       },
       {
+        path: '/403',
+        element: <NoPermission />,
+      },
+      {
         path: '/monitor/rain',
         element: (
           <PermissionRoute permission="page:monitor:rain">
             <RainMonitor />
+          </PermissionRoute>
+        ),
+      },
+      {
+        path: '/monitor/temperature',
+        element: (
+          <PermissionRoute permission="page:monitor:temperature">
+            <TemperatureMonitor />
           </PermissionRoute>
         ),
       },

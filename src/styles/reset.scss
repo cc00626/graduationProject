@@ -70,24 +70,29 @@ a {
   color: inherit; /* 链接颜色继承父元素，避免默认的蓝色 */
 }
 
-/* 6. 针对深色模式的滚动条美化 (Chrome/Safari/Edge) 
-   这对大屏展示项目非常重要，避免白色滚动条破坏氛围 */
+/* 6. 全局滚动条：适配浅色后台界面 */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #001529; /* 轨道颜色：深蓝 */
+  background: #f3f7fb;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #304050; /* 滑块颜色：稍亮的灰蓝 */
-  border-radius: 3px;
+  border: 2px solid #f3f7fb;
+  border-radius: 999px;
+  background: #c7d3e1;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #fa8c16; /* 悬停高亮：使用你的预警橙色 */
+  background: #94a7bd;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c7d3e1 #f3f7fb;
 }
 
 /* 7. 选中文本的颜色：高亮色呼应气象预警主题 */
